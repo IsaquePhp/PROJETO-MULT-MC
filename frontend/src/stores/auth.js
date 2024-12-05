@@ -3,7 +3,7 @@ import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: null,
+    user: JSON.parse(localStorage.getItem('user')) || null,
     token: localStorage.getItem('token') || null
   }),
   
@@ -20,10 +20,24 @@ export const useAuthStore = defineStore('auth', {
         this.token = response.data.access_token
         this.user = response.data.user
         localStorage.setItem('token', this.token)
+        localStorage.setItem('user', JSON.stringify(this.user))
         
         return true
       } catch (error) {
         console.error('Registration error:', error)
+        return false
+      }
+    },
+    
+    async resetPassword(email) {
+      try {
+        const response = await axios.post('http://localhost:8000/api/forgot-password', {
+          email
+        })
+        
+        return true
+      } catch (error) {
+        console.error('Reset password error:', error)
         return false
       }
     },
@@ -38,6 +52,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = response.data.access_token
         this.user = response.data.user
         localStorage.setItem('token', this.token)
+        localStorage.setItem('user', JSON.stringify(this.user))
         
         return true
       } catch (error) {
@@ -59,6 +74,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = null
         this.user = null
         localStorage.removeItem('token')
+        localStorage.removeItem('user')
       }
     }
   }

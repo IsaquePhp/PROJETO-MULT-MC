@@ -1,0 +1,121 @@
+<template>
+  <aside class="h-screen w-64 flex-shrink-0 border-r border-gray-200 bg-white">
+    <!-- Logo e Team Plan -->
+    <div class="p-4 border-b border-gray-200">
+      <div class="flex items-center">
+        <h1 class="text-xl font-bold text-indigo-600">MC</h1>
+        <span class="ml-2 text-sm text-gray-600">Team Plan</span>
+      </div>
+    </div>
+
+    <!-- Store Selector -->
+    <div class="p-4">
+      <StoreSelector />
+    </div>
+
+    <!-- Search -->
+    <div class="p-4 border-b border-gray-200">
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </span>
+        <input
+          type="text"
+          placeholder="Search"
+          class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-indigo-500"
+        >
+        <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400">
+          ⌘1
+        </span>
+      </div>
+    </div>
+
+    <!-- Menu Principal -->
+    <nav class="flex-1 overflow-y-auto">
+      <div class="px-3 py-2">
+        <div class="space-y-1">
+          <!-- Menu Items -->
+          <router-link
+            v-for="item in menuItems"
+            :key="item.route"
+            :to="item.route"
+            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
+            :class="[isActive(item.route) ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
+          >
+            <component :is="item.icon" class="mr-3 h-5 w-5" />
+            {{ item.name }}
+          </router-link>
+        </div>
+      </div>
+    </nav>
+
+    <!-- User Profile -->
+    <div class="p-4 border-t border-gray-200">
+      <div class="flex items-center">
+        <img
+          :src="'https://ui-avatars.com/api/?name=' + userName"
+          alt="User avatar"
+          class="h-8 w-8 rounded-full"
+        />
+        <span class="ml-3 text-sm font-medium text-gray-700">{{ userName }}</span>
+        <button
+          @click="handleLogout"
+          class="ml-auto text-sm text-gray-400 hover:text-gray-500"
+        >
+          Sair
+        </button>
+      </div>
+    </div>
+  </aside>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import StoreSelector from './StoreSelector.vue'
+
+const route = useRoute()
+const router = useRouter()
+
+const userName = computed(() => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  return user.name || 'User'
+})
+
+// Função para verificar se uma rota está ativa
+const isActive = (path) => {
+  return route.path === path
+}
+
+// Lista de itens do menu
+const menuItems = ref([
+  {
+    name: 'Dashboard',
+    icon: 'ChartBarIcon',
+    route: '/dashboard'
+  },
+  {
+    name: 'Produtos',
+    icon: 'CubeIcon',
+    route: '/products'
+  },
+  {
+    name: 'Vendas',
+    icon: 'ShoppingCartIcon',
+    route: '/sales'
+  },
+  {
+    name: 'Estoque',
+    icon: 'ArchiveIcon',
+    route: '/inventory'
+  }
+])
+
+function handleLogout() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  router.push('/login')
+}
+</script>

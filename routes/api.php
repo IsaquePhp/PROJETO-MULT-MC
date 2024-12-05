@@ -12,6 +12,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 
     // Product Routes
     Route::prefix('products')->middleware('auth:sanctum')->group(function () {
@@ -97,6 +100,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{company}', [CompanyController::class, 'destroy']);
     });
 
+    // Store Routes
+    Route::prefix('stores')->group(function () {
+        Route::get('/', [StoreController::class, 'index']);
+        Route::post('/', [StoreController::class, 'store']);
+        Route::get('/{id}', [StoreController::class, 'show']);
+        Route::put('/{id}', [StoreController::class, 'update']);
+        Route::delete('/{id}', [StoreController::class, 'destroy']);
+    });
+
     // User Management Routes
     Route::middleware(['auth:sanctum'])->group(function () {
         // User Routes
@@ -108,15 +120,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('/{user}', [UserController::class, 'destroy']);
             Route::post('/{user}/roles', [UserController::class, 'assignRole']);
             Route::delete('/{user}/roles/{role}', [UserController::class, 'removeRole']);
-        });
-
-        // Store Routes
-        Route::prefix('stores')->group(function () {
-            Route::get('/', [StoreController::class, 'index']);
-            Route::post('/', [StoreController::class, 'store']);
-            Route::get('/{store}', [StoreController::class, 'show']);
-            Route::put('/{store}', [StoreController::class, 'update']);
-            Route::delete('/{store}', [StoreController::class, 'destroy']);
         });
 
         // Role Routes

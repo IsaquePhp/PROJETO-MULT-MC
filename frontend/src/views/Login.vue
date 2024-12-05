@@ -57,9 +57,12 @@
                   <label class="ml-2 block text-sm text-gray-900">Lembrar senha</label>
                 </div>
                 <div class="text-sm">
-                  <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">
+                  <router-link 
+                    to="/reset-password" 
+                    class="font-medium text-indigo-600 hover:text-indigo-500"
+                  >
                     Esqueceu senha?
-                  </a>
+                  </router-link>
                 </div>
               </div>
 

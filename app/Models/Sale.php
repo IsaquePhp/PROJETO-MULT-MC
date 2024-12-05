@@ -12,11 +12,15 @@ class Sale extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'total_amount',
+        'channel',
+        'country',
+        'customer_id',
+        'status',
         'user_id',
         'store_id',
         'customer_name',
         'customer_document',
-        'total_amount',
         'payment_method',
         'payment_status',
         'sale_status',

@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
+import ResetPassword from '../views/ResetPassword.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Products from '../views/Products.vue'
 import Sales from '../views/Sales.vue'
 import Inventory from '../views/Inventory.vue'
+import TeamMarketing from '../views/TeamMarketing.vue'
 
 const routes = [
   {
@@ -20,6 +22,11 @@ const routes = [
     path: '/register',
     name: 'Register',
     component: Register
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: ResetPassword
   },
   {
     path: '/dashboard',
@@ -43,6 +50,12 @@ const routes = [
     path: '/inventory',
     name: 'Inventory',
     component: Inventory,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/team-marketing',
+    name: 'TeamMarketing',
+    component: TeamMarketing,
     meta: { requiresAuth: true }
   }
 ]
