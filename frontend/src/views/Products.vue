@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Navbar />
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-6 sm:px-0">
         <div class="flex justify-between items-center mb-6">
@@ -183,7 +182,6 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import Navbar from '../components/Navbar.vue'
 import axios from 'axios'
 
 const products = ref([])
