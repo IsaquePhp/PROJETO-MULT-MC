@@ -23,7 +23,7 @@
             <!-- Formulário -->
             <form @submit.prevent="handleLogin" class="space-y-6">
               <!-- Campo Email -->
-              <div>
+              <div class="form-group">
                 <label class="block text-sm font-medium text-gray-700 mb-1 text-left">Email</label>
                 <input
                   type="email"
@@ -32,10 +32,11 @@
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   required
                 />
+                <small class="form-text text-muted">Use: admin@admin.com</small>
               </div>
 
               <!-- Campo Senha -->
-              <div>
+              <div class="form-group">
                 <label class="block text-sm font-medium text-gray-700 mb-1 text-left">Senha</label>
                 <input
                   type="password"
@@ -44,6 +45,7 @@
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   required
                 />
+                <small class="form-text text-muted">Use: 123456</small>
               </div>
 
               <!-- Lembrar senha e Esqueceu senha -->

@@ -2,97 +2,76 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\SaleController;
-use App\Http\Controllers\CashFlowController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\SaleController;
+use App\Http\Controllers\Api\CashFlowController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\CompanyController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Api\DashboardController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-// Auth Routes
-Route::post('/register', [AuthController::class, 'register']);
+// Rotas públicas
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
 
+// Rotas protegidas
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
 
+    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
-    // Product Routes
-    Route::prefix('products')->middleware('auth:sanctum')->group(function () {
-        Route::get('/', [ProductController::class, 'index'])->middleware('permission:view-products');
-        Route::post('/', [ProductController::class, 'store'])->middleware('permission:create-products');
-        Route::get('/{product}', [ProductController::class, 'show'])->middleware('permission:view-products');
-        Route::put('/{product}', [ProductController::class, 'update'])->middleware('permission:edit-products');
-        Route::delete('/{product}', [ProductController::class, 'destroy'])->middleware('permission:delete-products');
-        
-        // Stock Management
-        Route::post('/{product}/stock', [ProductController::class, 'updateStock'])
-            ->middleware('permission:manage-stock');
-        Route::get('/{product}/stock-history', [ProductController::class, 'stockHistory'])
-            ->middleware('permission:view-stock');
-        
-        // Categories
-        Route::get('/categories', [ProductController::class, 'categories'])
-            ->middleware('permission:view-products');
+    // Produtos
+    Route::prefix('products')->group(function () {
+        Route::get('/', [ProductController::class, 'index']);
+        Route::post('/', [ProductController::class, 'store']);
+        Route::get('/{product}', [ProductController::class, 'show']);
+        Route::put('/{product}', [ProductController::class, 'update']);
+        Route::delete('/{product}', [ProductController::class, 'destroy']);
+        Route::get('/check-sku/{sku}', [ProductController::class, 'checkSku']);
+        Route::get('/categories', [ProductController::class, 'categories']);
+        Route::put('/{product}/stock', [ProductController::class, 'updateStock']);
     });
 
-    // Sale Routes
-    Route::prefix('sales')->middleware('auth:sanctum')->group(function () {
-        Route::get('/', [SaleController::class, 'index'])->middleware('permission:view-sales');
-        Route::post('/', [SaleController::class, 'store'])->middleware('permission:create-sales');
-        Route::get('/{sale}', [SaleController::class, 'show'])->middleware('permission:view-sales');
-        Route::post('/{sale}/complete', [SaleController::class, 'complete'])->middleware('permission:create-sales');
-        Route::post('/{sale}/cancel', [SaleController::class, 'cancel'])->middleware('permission:cancel-sales');
-        Route::get('/report', [SaleController::class, 'report'])->middleware('permission:view-reports');
-        Route::get('/report/daily', [SaleController::class, 'dailyReport'])->middleware('permission:view-reports');
+    // Vendas
+    Route::prefix('sales')->group(function () {
+        Route::get('/', [SaleController::class, 'index']);
+        Route::post('/', [SaleController::class, 'store']);
+        Route::get('/{sale}', [SaleController::class, 'show']);
+        Route::put('/{sale}', [SaleController::class, 'update']);
+        Route::delete('/{sale}', [SaleController::class, 'destroy']);
     });
 
-    // Cash Flow Routes
-    Route::prefix('cash-flow')->middleware('auth:sanctum')->group(function () {
-        Route::get('/', [CashFlowController::class, 'index'])->middleware('permission:view-cash-flow');
-        Route::post('/', [CashFlowController::class, 'store'])->middleware('permission:create-cash-flow');
-        Route::get('/{cashFlow}', [CashFlowController::class, 'show'])->middleware('permission:view-cash-flow');
-        Route::get('/balance', [CashFlowController::class, 'balance'])->middleware('permission:view-cash-flow');
-        Route::get('/report', [CashFlowController::class, 'report'])->middleware('permission:view-reports');
-        Route::post('/{cashFlow}/update', [CashFlowController::class, 'update'])->middleware('permission:edit-cash-flow');
-        Route::delete('/{cashFlow}', [CashFlowController::class, 'destroy'])->middleware('permission:delete-cash-flow');
+    // Usuários
+    Route::prefix('users')->middleware('permission:manage-users')->group(function () {
+        Route::get('/', [UserController::class, 'index']);
+        Route::post('/', [UserController::class, 'store']);
+        Route::get('/{user}', [UserController::class, 'show']);
+        Route::put('/{user}', [UserController::class, 'update']);
+        Route::delete('/{user}', [UserController::class, 'destroy']);
     });
 
-    // Inventory Routes
-    Route::prefix('inventory')->middleware(['auth:sanctum'])->group(function () {
-        Route::get('/', [InventoryController::class, 'index'])->middleware('permission:view-stock');
-        Route::post('/', [InventoryController::class, 'store'])->middleware('permission:manage-stock');
-        Route::get('/{id}', [InventoryController::class, 'show'])->middleware('permission:view-stock');
-        Route::post('/{id}/update-stock', [InventoryController::class, 'updateStock'])->middleware('permission:manage-stock');
-        Route::post('/transfer-stock', [InventoryController::class, 'transferStock'])->middleware('permission:manage-stock');
-        Route::get('/report/low-stock', [InventoryController::class, 'lowStockReport'])->middleware('permission:view-stock');
+    // Papéis e Permissões
+    Route::prefix('roles')->middleware('permission:manage-roles')->group(function () {
+        Route::get('/', [RoleController::class, 'index']);
+        Route::post('/', [RoleController::class, 'store']);
+        Route::get('/{role}', [RoleController::class, 'show']);
+        Route::put('/{role}', [RoleController::class, 'update']);
+        Route::delete('/{role}', [RoleController::class, 'destroy']);
     });
 
-    // Company Routes
-    Route::prefix('companies')->group(function () {
+    Route::prefix('permissions')->middleware('permission:manage-roles')->group(function () {
+        Route::get('/', [PermissionController::class, 'index']);
+    });
+
+    // Empresas
+    Route::prefix('companies')->middleware('permission:manage-companies')->group(function () {
         Route::get('/', [CompanyController::class, 'index']);
         Route::post('/', [CompanyController::class, 'store']);
         Route::get('/{company}', [CompanyController::class, 'show']);
@@ -100,49 +79,32 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{company}', [CompanyController::class, 'destroy']);
     });
 
-    // Store Routes
-    Route::prefix('stores')->group(function () {
+    // Lojas
+    Route::prefix('stores')->middleware('permission:manage-stores')->group(function () {
         Route::get('/', [StoreController::class, 'index']);
         Route::post('/', [StoreController::class, 'store']);
-        Route::get('/{id}', [StoreController::class, 'show']);
-        Route::put('/{id}', [StoreController::class, 'update']);
-        Route::delete('/{id}', [StoreController::class, 'destroy']);
+        Route::get('/{store}', [StoreController::class, 'show']);
+        Route::put('/{store}', [StoreController::class, 'update']);
+        Route::delete('/{store}', [StoreController::class, 'destroy']);
     });
 
-    // User Management Routes
-    Route::middleware(['auth:sanctum'])->group(function () {
-        // User Routes
-        Route::prefix('users')->middleware('permission:manage-users')->group(function () {
-            Route::get('/', [UserController::class, 'index']);
-            Route::post('/', [UserController::class, 'store']);
-            Route::get('/{user}', [UserController::class, 'show']);
-            Route::put('/{user}', [UserController::class, 'update']);
-            Route::delete('/{user}', [UserController::class, 'destroy']);
-            Route::post('/{user}/roles', [UserController::class, 'assignRole']);
-            Route::delete('/{user}/roles/{role}', [UserController::class, 'removeRole']);
-        });
+    // Inventário
+    Route::prefix('inventory')->group(function () {
+        Route::get('/', [InventoryController::class, 'index']);
+        Route::post('/', [InventoryController::class, 'store']);
+        Route::get('/{inventory}', [InventoryController::class, 'show']);
+        Route::put('/{inventory}', [InventoryController::class, 'update']);
+        Route::delete('/{inventory}', [InventoryController::class, 'destroy']);
+        Route::post('/{inventory}/close', [InventoryController::class, 'close']);
+        Route::post('/{inventory}/reopen', [InventoryController::class, 'reopen']);
+    });
 
-        // Role Routes
-        Route::prefix('roles')->middleware('permission:manage-roles')->group(function () {
-            Route::get('/', [RoleController::class, 'index']);
-            Route::post('/', [RoleController::class, 'store']);
-            Route::get('/{role}', [RoleController::class, 'show']);
-            Route::put('/{role}', [RoleController::class, 'update']);
-            Route::delete('/{role}', [RoleController::class, 'destroy']);
-            Route::get('/{role}/users', [RoleController::class, 'listUsers']);
-            Route::get('/{role}/permissions', [RoleController::class, 'listPermissions']);
-            Route::post('/{role}/permissions', [RoleController::class, 'assignPermission']);
-            Route::delete('/{role}/permissions/{permission}', [RoleController::class, 'removePermission']);
-        });
-
-        // Permission Routes
-        Route::prefix('permissions')->middleware('permission:manage-permissions')->group(function () {
-            Route::get('/', [PermissionController::class, 'index']);
-            Route::post('/', [PermissionController::class, 'store']);
-            Route::get('/{permission}', [PermissionController::class, 'show']);
-            Route::put('/{permission}', [PermissionController::class, 'update']);
-            Route::delete('/{permission}', [PermissionController::class, 'destroy']);
-            Route::get('/{permission}/roles', [PermissionController::class, 'listRoles']);
-        });
+    // Fluxo de Caixa
+    Route::prefix('cash-flow')->group(function () {
+        Route::get('/', [CashFlowController::class, 'index']);
+        Route::post('/', [CashFlowController::class, 'store']);
+        Route::get('/{cashFlow}', [CashFlowController::class, 'show']);
+        Route::put('/{cashFlow}', [CashFlowController::class, 'update']);
+        Route::delete('/{cashFlow}', [CashFlowController::class, 'destroy']);
     });
 });

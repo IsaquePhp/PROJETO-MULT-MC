@@ -71,7 +71,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '../plugins/axios'
 
 const router = useRouter()
 const isOpen = ref(false)
@@ -81,10 +81,7 @@ const currentStore = ref({})
 // Carregar lojas do usuário
 const loadStores = async () => {
   try {
-    const token = localStorage.getItem('token')
-    const response = await axios.get('http://localhost:8000/api/stores', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    const response = await axios.get('/stores')
     stores.value = response.data
     
     // Se não houver loja selecionada, seleciona a primeira
