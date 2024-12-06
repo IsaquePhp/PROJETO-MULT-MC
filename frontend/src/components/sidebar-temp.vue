@@ -38,7 +38,7 @@
             :class="[$route.path === '/customers' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
           >
             <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             Clientes
           </router-link>
@@ -98,23 +98,12 @@
             Estoque
           </router-link>
 
-          <router-link
-            to="/lancamentos"
-            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
-            :class="[$route.path === '/lancamentos' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
-          >
-            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            Lançamentos
-          </router-link>
-
           <!-- Menu Logística -->
           <div class="relative">
             <div class="flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 cursor-pointer"
                  @click="toggleLogisticsMenu">
               <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3V4" />
               </svg>
               <span class="flex-1">Logística</span>
               <svg 
@@ -128,29 +117,29 @@
               </svg>
             </div>
             
-            <!-- Submenu Logística -->
+            <!-- Submenu -->
             <div 
               v-show="isLogisticsOpen"
               class="mt-1"
             >
               <router-link
-                to="/logistics/entregas"
+                to="/logistics/deliveries"
                 class="flex items-center pl-10 pr-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
-                :class="{ 'bg-indigo-50 text-indigo-600': $route.path === '/logistics/entregas' }"
+                :class="{ 'bg-indigo-50 text-indigo-600': $route.path === '/logistics/deliveries' }"
               >
                 <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Entregas
               </router-link>
-
+              
               <router-link
-                to="/logistics/devolucoes"
+                to="/logistics/returns"
                 class="flex items-center pl-10 pr-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
-                :class="{ 'bg-indigo-50 text-indigo-600': $route.path === '/logistics/devolucoes' }"
+                :class="{ 'bg-indigo-50 text-indigo-600': $route.path === '/logistics/returns' }"
               >
                 <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21l-7-7 7-7" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l3-3m-3 3L9 7m0 0l-3 3 3 3" />
                 </svg>
                 Devoluções
               </router-link>
@@ -233,87 +222,37 @@
             :class="[$route.path === '/reports' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
           >
             <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 4h-2m-6 2h-2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Relatórios
           </router-link>
         </div>
       </div>
-    </nav>
 
-    <!-- Perfil do Usuário -->
-    <div class="relative mt-auto bg-white">
-      <div class="h-px bg-gray-100"></div>
-      <button 
-        @click="toggleProfileMenu"
-        class="profile-button w-full p-4 flex items-center bg-white"
-      >
-        <img
-          :src="'https://ui-avatars.com/api/?name=' + 'Usuário'"
-          alt="User avatar"
-          class="w-8 h-8 rounded-full"
-        >
-        <div class="ml-3 flex-1 text-left">
-          <p class="text-sm font-medium text-gray-700">Usuário</p>
-          <p class="text-xs text-gray-500">usuario@exemplo.com</p>
+      <!-- Rodapé com Admin -->
+      <div class="border-t border-gray-200 p-4">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+              <span class="text-sm font-medium text-gray-500">AD</span>
+            </div>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-gray-700">Admin</p>
+            <p class="text-xs text-gray-500">admin@admin.com</p>
+          </div>
         </div>
-        <svg 
-          class="w-5 h-5 text-gray-400 transition-transform duration-200"
-          :class="{ 'transform rotate-180': isProfileOpen }"
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      <!-- Menu Flutuante -->
-      <div 
-        v-if="isProfileOpen"
-        class="profile-menu absolute bottom-full left-0 right-0 mx-4 mb-2 bg-white rounded-lg shadow-xl border border-gray-50 p-2"
-      >
-        <a href="#" class="flex items-center px-4 py-2.5 text-sm text-gray-700 rounded-md hover:bg-gray-100">
-          <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          Perfil
-        </a>
-        <a href="#" class="flex items-center px-4 py-2.5 text-sm text-gray-700 rounded-md hover:bg-gray-100">
-          <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0" />
-          </svg>
-          Configurações
-        </a>
-        <div class="h-px bg-gray-100 my-2"></div>
-        <button 
-          @click="handleLogout"
-          class="w-full flex items-center px-4 py-2.5 text-sm text-red-600 rounded-md hover:bg-gray-100"
-        >
-          <svg class="mr-3 h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v6" />
-          </svg>
-          Logout
-        </button>
       </div>
-    </div>
+    </nav>
   </aside>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 import StoreSelector from './StoreSelector.vue'
 
-const router = useRouter()
-const isProfileOpen = ref(false)
 const isLogisticsOpen = ref(false)
 const isFinancialOpen = ref(false)
-
-const toggleProfileMenu = () => {
-  isProfileOpen.value = !isProfileOpen.value
-}
 
 const toggleLogisticsMenu = () => {
   isLogisticsOpen.value = !isLogisticsOpen.value
@@ -322,52 +261,4 @@ const toggleLogisticsMenu = () => {
 const toggleFinancialMenu = () => {
   isFinancialOpen.value = !isFinancialOpen.value
 }
-
-const closeLogisticsMenu = () => {
-  isLogisticsOpen.value = false
-}
-
-const handleClickOutside = (event) => {
-  const profile = document.querySelector('.profile-menu')
-  if (profile && !profile.contains(event.target)) {
-    isProfileOpen.value = false
-  }
-}
-
-const handleLogout = () => {
-  // Implement logout logic here
-  router.push('/login')
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
 </script>
-
-<style>
-.profile-button {
-  -webkit-tap-highlight-color: transparent;
-}
-
-.profile-button:focus,
-.profile-button:hover,
-.profile-button:active {
-  outline: none !important;
-  box-shadow: none !important;
-  border: none !important;
-}
-
-/* Remove a borda azul em navegadores Webkit (Chrome, Safari) */
-.profile-button:focus-visible {
-  outline: none !important;
-}
-
-/* Remove a borda azul em navegadores Firefox */
-.profile-button::-moz-focus-inner {
-  border: 0;
-}
-</style>

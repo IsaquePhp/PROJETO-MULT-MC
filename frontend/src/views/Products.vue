@@ -4,9 +4,14 @@
       <div class="px-4 py-6 sm:px-0">
         <div class="flex justify-between items-center mb-6">
           <h1 class="text-2xl font-semibold text-gray-900">Produtos</h1>
-          <button @click="showAddModal = true" class="btn-primary">
-            Adicionar Produto
-          </button>
+          <div class="flex gap-2">
+            <button @click="showImportModal = true" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+              Importar do Magalu
+            </button>
+            <button @click="showAddModal = true" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+              Adicionar Produto
+            </button>
+          </div>
         </div>
 
         <!-- Filtros -->
@@ -19,11 +24,12 @@
                 v-model="filters.search" 
                 class="input-field" 
                 placeholder="Nome, SKU ou código"
+                @input="debouncedLoadProducts"
               />
             </div>
             <div>
               <label class="form-label">Categoria</label>
-              <select v-model="filters.category" class="input-field">
+              <select v-model="filters.category" class="input-field" @change="loadProducts">
                 <option value="">Todas</option>
                 <option v-for="category in categories" :key="category" :value="category">
                   {{ category }}
@@ -32,7 +38,7 @@
             </div>
             <div>
               <label class="form-label">Status</label>
-              <select v-model="filters.status" class="input-field">
+              <select v-model="filters.status" class="input-field" @change="loadProducts">
                 <option value="">Todos</option>
                 <option value="active">Ativo</option>
                 <option value="inactive">Inativo</option>
@@ -40,7 +46,7 @@
             </div>
             <div>
               <label class="form-label">Estoque</label>
-              <select v-model="filters.stock" class="input-field">
+              <select v-model="filters.stock" class="input-field" @change="loadProducts">
                 <option value="">Todos</option>
                 <option value="low">Baixo</option>
                 <option value="normal">Normal</option>
@@ -52,7 +58,18 @@
 
         <!-- Lista de Produtos -->
         <div class="card">
-          <table class="min-w-full divide-y divide-gray-200">
+          <!-- Loading state -->
+          <div v-if="loading" class="py-12 text-center text-gray-500">
+            Carregando produtos...
+          </div>
+
+          <!-- Empty state -->
+          <div v-else-if="products.length === 0" class="py-12 text-center text-gray-500">
+            Nenhum produto encontrado.
+          </div>
+
+          <!-- Products table -->
+          <table v-else class="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -103,18 +120,18 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span :class="getStatusClass(product.status)">
-                    {{ product.status }}
+                    {{ product.status === 'active' ? 'Ativo' : 'Inativo' }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                   <button 
-                    @click="editProduct(product)" 
+                    @click="editProduct(product)"
                     class="text-blue-600 hover:text-blue-900 mr-4"
                   >
                     Editar
                   </button>
                   <button 
-                    @click="deleteProduct(product.id)" 
+                    @click="deleteProduct(product.id)"
                     class="text-red-600 hover:text-red-900"
                   >
                     Excluir
@@ -126,6 +143,13 @@
         </div>
       </div>
     </main>
+
+    <!-- Modais e Toast -->
+    <ProductImportModal 
+      v-if="showImportModal"
+      @close="showImportModal = false"
+      @product-imported="onProductImported"
+    />
 
     <!-- Modal de Adicionar/Editar Produto -->
     <div v-if="showAddModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
@@ -299,7 +323,7 @@
     <!-- Toast de Sucesso -->
     <div 
       v-if="showToast" 
-      class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg"
+      class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg"
     >
       {{ toastMessage }}
     </div>
@@ -309,28 +333,31 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import axios from '../plugins/axios'
-import { useToast } from '../composables/useToast'
+import ProductImportModal from '../components/ProductImportModal.vue'
 
+// Refs
 const products = ref([])
 const categories = ref([])
+const loading = ref(false)
 const showAddModal = ref(false)
+const showImportModal = ref(false)
+const showToast = ref(false)
+const toastMessage = ref('')
 const editingProduct = ref(null)
-const newCategory = ref('')
-const errors = ref({})
 const isSaving = ref(false)
-const { showToast, toastMessage, showSuccessToast } = useToast()
+const errors = ref({})
 
-const defaultCategories = [
-  'Roupas',
-  'Calçados',
-  'Acessórios',
-  'Eletrônicos',
-  'Móveis',
-  'Decoração',
-  'Brinquedos',
-  'Livros',
-  'Outros'
-]
+// Form state
+const productForm = ref({
+  name: '',
+  description: '',
+  sku: '',
+  category: '',
+  price: '',
+  stock: '',
+  min_stock: '',
+  status: 'active'
+})
 
 const filters = ref({
   search: '',
@@ -339,206 +366,26 @@ const filters = ref({
   stock: ''
 })
 
-const productForm = ref({
-  name: '',
-  description: '',
-  sku: '',
-  price: '',
-  cost_price: '',
-  stock: '',
-  min_stock: '',
-  unit: 'un',
-  category: '',
-  status: 'active'
-})
-
-const isFormValid = computed(() => {
-  return productForm.value.name &&
-    productForm.value.sku &&
-    productForm.value.price &&
-    productForm.value.cost_price &&
-    productForm.value.stock &&
-    productForm.value.min_stock &&
-    productForm.value.category &&
-    productForm.value.unit &&
-    Object.keys(errors.value).length === 0
-})
-
+// Carregar produtos quando o componente é montado
 onMounted(async () => {
-  await loadProducts()
-  await loadCategories()
+  await Promise.all([
+    loadProducts(),
+    loadCategories()
+  ])
 })
 
-function formatCurrency(event, field) {
-  let value = event.target.value.replace(/\D/g, '')
-  if (value === '') {
-    productForm.value[field] = ''
-    return
-  }
-  value = (parseFloat(value) / 100).toFixed(2)
-  if (isNaN(value)) {
-    productForm.value[field] = ''
-    return
-  }
-  productForm.value[field] = value
-  validatePrice(field)
+// Debounce para a busca
+let searchTimeout
+const debouncedLoadProducts = () => {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    loadProducts()
+  }, 300)
 }
 
-function validatePrice(field) {
-  const value = parseFloat(productForm.value[field])
-  if (isNaN(value) || value < 0) {
-    errors.value[field] = 'O valor deve ser maior que zero'
-    return false
-  }
-  delete errors.value[field]
-  return true
-}
-
-function validateStock() {
-  const stock = parseInt(productForm.value.stock)
-  const minStock = parseInt(productForm.value.min_stock)
-
-  if (isNaN(stock) || stock < 0) {
-    errors.value.stock = 'O estoque deve ser maior ou igual a zero'
-    return false
-  }
-  delete errors.value.stock
-
-  if (isNaN(minStock) || minStock < 0) {
-    errors.value.min_stock = 'O estoque mínimo deve ser maior ou igual a zero'
-    return false
-  }
-  
-  if (minStock > stock) {
-    errors.value.min_stock = 'O estoque mínimo não pode ser maior que o estoque atual'
-    return false
-  }
-  delete errors.value.min_stock
-  return true
-}
-
-async function validateSku() {
-  if (!productForm.value.sku) {
-    errors.value.sku = 'SKU é obrigatório'
-    return
-  }
-
-  if (!/^[A-Za-z0-9-]+$/.test(productForm.value.sku)) {
-    errors.value.sku = 'SKU deve conter apenas letras, números e hífen'
-    return
-  }
-
-  try {
-    const response = await axios.get(`/products/check-sku/${productForm.value.sku}`)
-    if (response.data.exists && (!editingProduct.value || editingProduct.value.sku !== productForm.value.sku)) {
-      errors.value.sku = 'SKU já existe'
-    } else {
-      delete errors.value.sku
-    }
-  } catch (error) {
-    console.error('Error checking SKU:', error)
-  }
-}
-
-function validateCategory() {
-  if (productForm.value.category === 'other' && !newCategory.value) {
-    errors.value.category = 'Digite o nome da nova categoria'
-  } else {
-    delete errors.value.category
-  }
-}
-
-function closeModal() {
-  showAddModal.value = false
-  editingProduct.value = null
-  productForm.value = {
-    name: '',
-    description: '',
-    sku: '',
-    price: '',
-    cost_price: '',
-    stock: '',
-    min_stock: '',
-    unit: 'un',
-    category: '',
-    status: 'active'
-  }
-  errors.value = {}
-  newCategory.value = ''
-}
-
-async function saveProduct() {
-  errors.value = {}
-  
-  // Validações antes de enviar
-  if (!productForm.value.name || productForm.value.name.length < 3) {
-    errors.value.name = 'O nome deve ter pelo menos 3 caracteres'
-    return
-  }
-
-  if (!productForm.value.sku) {
-    errors.value.sku = 'O SKU é obrigatório'
-    return
-  }
-
-  if (!validatePrice('price')) return
-  if (!validatePrice('cost_price')) return
-  if (!validateStock()) return
-
-  if (!productForm.value.category) {
-    errors.value.category = 'A categoria é obrigatória'
-    return
-  }
-
-  if (!productForm.value.unit) {
-    errors.value.unit = 'A unidade é obrigatória'
-    return
-  }
-
-  if (productForm.value.category === 'other' && !newCategory.value) {
-    errors.value.category = 'Digite o nome da nova categoria'
-    return
-  }
-
-  isSaving.value = true
-  try {
-    const formData = { ...productForm.value }
-    
-    // Converter valores monetários para números
-    formData.price = parseFloat(formData.price)
-    formData.cost_price = parseFloat(formData.cost_price)
-    
-    // Converter valores de estoque para inteiros
-    formData.stock = parseInt(formData.stock)
-    formData.min_stock = parseInt(formData.min_stock)
-    
-    // Usar a nova categoria se necessário
-    if (formData.category === 'other') {
-      formData.category = newCategory.value
-    }
-
-    if (editingProduct.value) {
-      await axios.put(`/products/${editingProduct.value.id}`, formData)
-      showSuccessToast('Produto atualizado com sucesso!')
-    } else {
-      await axios.post('/products', formData)
-      showSuccessToast('Produto criado com sucesso!')
-    }
-    
-    await loadProducts()
-    closeModal()
-  } catch (error) {
-    if (error.response?.data?.errors) {
-      errors.value = error.response.data.errors
-    } else {
-      showToast('Erro ao salvar produto. Tente novamente.')
-    }
-  } finally {
-    isSaving.value = false
-  }
-}
-
+// Carregar produtos com loading state
 async function loadProducts() {
+  loading.value = true
   try {
     const response = await axios.get('/products', {
       params: filters.value
@@ -546,41 +393,111 @@ async function loadProducts() {
     products.value = response.data
   } catch (error) {
     console.error('Error loading products:', error)
-    showToast('Erro ao carregar produtos')
+    showToast.value = true
+    toastMessage.value = 'Erro ao carregar produtos'
+  } finally {
+    loading.value = false
   }
 }
 
+// Carregar categorias
 async function loadCategories() {
   try {
-    const response = await axios.get('/products/categories')
+    const response = await axios.get('/categories')
     categories.value = response.data
   } catch (error) {
     console.error('Error loading categories:', error)
   }
 }
 
+// Validar SKU
+function validateSku() {
+  const skuPattern = /^[A-Za-z0-9-]+$/
+  if (!skuPattern.test(productForm.value.sku)) {
+    errors.value.sku = 'SKU deve conter apenas letras, números e hífen'
+  } else {
+    delete errors.value.sku
+  }
+}
+
+// Salvar produto
+async function saveProduct() {
+  if (Object.keys(errors.value).length > 0) return
+
+  isSaving.value = true
+  try {
+    const endpoint = editingProduct.value ? `/products/${editingProduct.value.id}` : '/products'
+    const method = editingProduct.value ? 'put' : 'post'
+    
+    const response = await axios[method](endpoint, productForm.value)
+    
+    showToast.value = true
+    toastMessage.value = editingProduct.value ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!'
+    
+    await loadProducts()
+    closeModal()
+  } catch (error) {
+    console.error('Error saving product:', error)
+    showToast.value = true
+    toastMessage.value = 'Erro ao salvar produto'
+  } finally {
+    isSaving.value = false
+  }
+}
+
+// Editar produto
 function editProduct(product) {
   editingProduct.value = product
   productForm.value = { ...product }
   showAddModal.value = true
 }
 
+// Fechar modal
+function closeModal() {
+  showAddModal.value = false
+  showImportModal.value = false
+  editingProduct.value = null
+  productForm.value = {
+    name: '',
+    description: '',
+    sku: '',
+    category: '',
+    price: '',
+    stock: '',
+    min_stock: '',
+    status: 'active'
+  }
+  errors.value = {}
+}
+
+// Deletar produto
 async function deleteProduct(id) {
   if (!confirm('Tem certeza que deseja excluir este produto?')) return
   
   try {
     await axios.delete(`/products/${id}`)
+    showToast.value = true
+    toastMessage.value = 'Produto excluído com sucesso!'
     await loadProducts()
   } catch (error) {
     console.error('Error deleting product:', error)
+    showToast.value = true
+    toastMessage.value = 'Erro ao excluir produto'
   }
 }
 
+// Callback quando um produto é importado
+function onProductImported(product) {
+  showToast.value = true
+  toastMessage.value = 'Produto importado com sucesso!'
+  loadProducts()
+  showImportModal.value = false
+}
+
+// Estilo do status
 function getStatusClass(status) {
-  const classes = {
-    active: 'bg-green-100 text-green-800',
-    inactive: 'bg-red-100 text-red-800'
-  }
-  return `px-2 py-1 text-xs font-medium rounded-full ${classes[status] || ''}`
+  return status === 'active'
+    ? 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800'
+    : 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800'
 }
 </script>

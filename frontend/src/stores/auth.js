@@ -1,110 +1,47 @@
 import { defineStore } from 'pinia'
 import axios from '../plugins/axios'
+import router from '../router'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: JSON.parse(localStorage.getItem('user')) || null,
+    user: null,
     token: localStorage.getItem('token') || null,
-    loading: false,
-    error: null
+    loading: false
   }),
-  
+
   getters: {
     isAuthenticated: (state) => !!state.token,
-    getUser: (state) => state.user,
-    getError: (state) => state.error
+    getUser: (state) => state.user
   },
-  
+
   actions: {
-    async register(name, email, password, password_confirmation) {
-      this.loading = true
-      this.error = null
-      
-      try {
-        console.log('Iniciando registro...')
-        
-        // Primeiro, obter o CSRF token
-        const csrfResponse = await axios.get('http://localhost/VERSAO%20DIEGO/api-loja-mc/public/sanctum/csrf-cookie')
-        console.log('CSRF Response:', csrfResponse)
-        
-        // Tentar fazer registro
-        console.log('Enviando credenciais...')
-        const response = await axios.post('/register', {
-          name,
-          email,
-          password,
-          password_confirmation
-        })
-        console.log('Registro Response:', response.data)
-        
-        if (response.data.access_token) {
-          this.token = response.data.access_token
-          this.user = response.data.user
-          localStorage.setItem('token', this.token)
-          localStorage.setItem('user', JSON.stringify(this.user))
-          return true
-        } else {
-          throw new Error('Token não recebido')
-        }
-      } catch (error) {
-        console.error('Erro detalhado:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        })
-        this.error = error.response?.data?.message || 'Erro ao registrar'
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
-    
     async login(email, password) {
       this.loading = true
-      this.error = null
-      
       try {
-        console.log('Iniciando login...')
-        
-        // Primeiro, obter o CSRF token
-        const csrfResponse = await axios.get('http://localhost/VERSAO%20DIEGO/api-loja-mc/public/sanctum/csrf-cookie')
-        console.log('CSRF Response:', csrfResponse)
-        
-        // Tentar fazer login
-        console.log('Enviando credenciais...')
-        const response = await axios.post('/login', {
-          email,
-          password
-        })
-        console.log('Login Response:', response.data)
-        
-        if (response.data.access_token) {
-          this.token = response.data.access_token
-          this.user = response.data.user
-          localStorage.setItem('token', this.token)
-          localStorage.setItem('user', JSON.stringify(this.user))
-          return true
-        } else {
-          throw new Error('Token não recebido')
-        }
+        const response = await axios.post('/login', { email, password })
+        const { token, user } = response.data
+
+        this.token = token
+        this.user = user
+        localStorage.setItem('token', token)
+        localStorage.setItem('user', JSON.stringify(user))
+
+        // Configure axios headers
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+
+        await router.push('/dashboard')
+        return true
       } catch (error) {
-        console.error('Erro detalhado:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        })
-        this.error = error.response?.data?.message || 'Erro ao fazer login'
+        console.error('Login error:', error)
         throw error
       } finally {
         this.loading = false
       }
     },
-    
+
     async logout() {
       try {
-        console.log('Iniciando logout...')
-        const response = await axios.post('/logout')
-        console.log('Logout Response:', response.data)
+        await axios.post('/logout')
       } catch (error) {
         console.error('Logout error:', error)
       } finally {
@@ -112,18 +49,37 @@ export const useAuthStore = defineStore('auth', {
         this.user = null
         localStorage.removeItem('token')
         localStorage.removeItem('user')
+        delete axios.defaults.headers.common['Authorization']
+        await router.push('/login')
       }
     },
-    
-    checkAuth() {
+
+    async checkAuth() {
+      if (!this.token) {
+        await router.push('/login')
+        return false
+      }
+
+      try {
+        const response = await axios.get('/me')
+        this.user = response.data
+        return true
+      } catch (error) {
+        console.error('Auth check error:', error)
+        await this.logout()
+        return false
+      }
+    },
+
+    initializeAuth() {
       const token = localStorage.getItem('token')
       const user = localStorage.getItem('user')
+
       if (token && user) {
         this.token = token
         this.user = JSON.parse(user)
-        return true
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
       }
-      return false
     }
   }
 })

@@ -13,6 +13,9 @@ use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\ProductImportController;
 
 // Rotas públicas
 Route::post('/login', [AuthController::class, 'login']);
@@ -37,6 +40,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/check-sku/{sku}', [ProductController::class, 'checkSku']);
         Route::get('/categories', [ProductController::class, 'categories']);
         Route::put('/{product}/stock', [ProductController::class, 'updateStock']);
+
+        // Product Import Routes (Magalu)
+        Route::prefix('magalu')->group(function () {
+            Route::get('search', [ProductImportController::class, 'search']);
+            Route::post('import', [ProductImportController::class, 'import']);
+            Route::post('update-all', [ProductImportController::class, 'updateAll']);
+        });
     });
 
     // Vendas
@@ -46,6 +56,28 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{sale}', [SaleController::class, 'show']);
         Route::put('/{sale}', [SaleController::class, 'update']);
         Route::delete('/{sale}', [SaleController::class, 'destroy']);
+    });
+
+    // Clientes
+    Route::prefix('customers')->group(function () {
+        Route::get('/', [CustomerController::class, 'index']);
+        Route::post('/', [CustomerController::class, 'store']);
+        Route::get('/{customer}', [CustomerController::class, 'show']);
+        Route::put('/{customer}', [CustomerController::class, 'update']);
+        Route::delete('/{customer}', [CustomerController::class, 'destroy']);
+        Route::get('/{customer}/sales', [CustomerController::class, 'salesHistory']);
+        Route::get('/{customer}/payments', [CustomerController::class, 'paymentHistory']);
+    });
+
+    // Pagamentos
+    Route::prefix('payments')->group(function () {
+        Route::get('/', [PaymentController::class, 'index']);
+        Route::post('/', [PaymentController::class, 'store']);
+        Route::get('/late', [PaymentController::class, 'latePayments']);
+        Route::get('/{payment}', [PaymentController::class, 'show']);
+        Route::put('/{payment}', [PaymentController::class, 'update']);
+        Route::delete('/{payment}', [PaymentController::class, 'destroy']);
+        Route::post('/{payment}/register', [PaymentController::class, 'registerPayment']);
     });
 
     // Usuários

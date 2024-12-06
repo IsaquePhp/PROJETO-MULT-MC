@@ -1,36 +1,50 @@
 import axios from 'axios'
+import { useAuthStore } from '../stores/auth'
 
-const axiosInstance = axios.create({
-    baseURL: 'http://localhost/VERSAO%20DIEGO/api-loja-mc/public/api',
-    headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-    },
-    withCredentials: true
+// Configuração base do axios
+const instance = axios.create({
+  baseURL: 'http://localhost/VERSAO%20DIEGO/api-loja-mc/public/api',
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
 })
 
-axiosInstance.interceptors.request.use(
-    config => {
-        const token = localStorage.getItem('token')
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`
-        }
-        return config
-    },
-    error => Promise.reject(error)
-)
-
-axiosInstance.interceptors.response.use(
-    response => response,
-    error => {
-        if (error.response?.status === 401) {
-            localStorage.removeItem('token')
-            localStorage.removeItem('user')
-            window.location.href = '/#/login'
-        }
-        return Promise.reject(error)
+// Interceptor de requisição
+instance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`
     }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
 )
 
-export default axiosInstance
+// Interceptor de resposta
+instance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const authStore = useAuthStore()
+    
+    if (error.response) {
+      // Erro de autenticação
+      if (error.response.status === 401) {
+        await authStore.logout()
+      }
+      
+      // Erro de validação
+      if (error.response.status === 422) {
+        return Promise.reject(error.response.data)
+      }
+    }
+    
+    return Promise.reject(error)
+  }
+)
+
+export default instance

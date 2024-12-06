@@ -15,7 +15,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Verificar pagamentos atrasados todos os dias às 8h
+        $schedule->command('payments:check-late')->dailyAt('08:00');
     }
 
     /**

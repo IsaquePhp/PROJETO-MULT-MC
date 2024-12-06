@@ -1,190 +1,103 @@
 <template>
-  <div class="min-h-screen w-full flex bg-white">
-    <div class="container mx-auto flex">
-      <!-- Container do conteúdo -->
-      <div class="w-full flex flex-col md:flex-row items-center">
-        <!-- Lado Esquerdo - Formulário -->
-        <div class="w-full md:w-1/2 p-8 md:p-12 lg:p-16">
-          <div class="max-w-md mx-auto">
-            <!-- Logo -->
-            <div class="mb-8">
-              <h1 class="text-4xl font-bold text-indigo-600">MC</h1>
-            </div>
-
-            <!-- Título e Subtítulo -->
-            <div class="text-center mb-8">
-              <h2 class="text-3xl font-semibold text-gray-900 mb-2">Fazer login</h2>
-              <p class="text-gray-600">
-                Seja bem vindo ao MC<br />
-                a plataforma criada para sua loja.
-              </p>
-            </div>
-
-            <!-- Formulário -->
-            <form @submit.prevent="handleLogin" class="space-y-6">
-              <!-- Campo Email -->
-              <div class="form-group">
-                <label class="block text-sm font-medium text-gray-700 mb-1 text-left">Email</label>
-                <input
-                  type="email"
-                  v-model="email"
-                  placeholder="Digite seu email"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  required
-                />
-                <small class="form-text text-muted">Use: admin@admin.com</small>
-              </div>
-
-              <!-- Campo Senha -->
-              <div class="form-group">
-                <label class="block text-sm font-medium text-gray-700 mb-1 text-left">Senha</label>
-                <input
-                  type="password"
-                  v-model="password"
-                  placeholder="Digite sua senha"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  required
-                />
-                <small class="form-text text-muted">Use: 123456</small>
-              </div>
-
-              <!-- Lembrar senha e Esqueceu senha -->
-              <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                  <input
-                    type="checkbox"
-                    v-model="rememberMe"
-                    class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                  <label class="ml-2 block text-sm text-gray-900">Lembrar senha</label>
-                </div>
-                <div class="text-sm">
-                  <router-link 
-                    to="/reset-password" 
-                    class="font-medium text-indigo-600 hover:text-indigo-500"
-                  >
-                    Esqueceu senha?
-                  </router-link>
-                </div>
-              </div>
-
-              <!-- Botão de Login -->
-              <button
-                type="submit"
-                :disabled="loading"
-                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-              >
-                <span v-if="loading">Carregando...</span>
-                <span v-else>Acessar conta</span>
-              </button>
-
-              <!-- Link para Criar conta -->
-              <div class="text-sm text-center pt-4">
-                <span class="text-gray-600">Ainda não tem conta?</span>
-                <router-link 
-                  to="/register" 
-                  class="font-medium text-indigo-600 hover:text-indigo-500 ml-1"
-                >
-                  Criar conta
-                </router-link>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <!-- Lado Direito - Decorativo -->
-        <div class="hidden md:block md:w-1/2 bg-indigo-50 h-screen">
-          <div class="h-full w-full p-12 relative">
-            <!-- Grid de formas decorativas -->
-            <div class="absolute inset-0 grid grid-cols-2 gap-8 p-12">
-              <div class="space-y-8">
-                <div class="bg-white rounded-2xl shadow-lg h-40 transform hover:scale-105 transition-transform duration-300"></div>
-                <div class="bg-indigo-200 rounded-2xl h-56 transform translate-x-6 hover:scale-105 transition-transform duration-300"></div>
-                <div class="bg-indigo-100 rounded-2xl h-40 transform -translate-y-8 hover:scale-105 transition-transform duration-300"></div>
-              </div>
-              <div class="space-y-8 pt-12">
-                <div class="bg-indigo-300 rounded-2xl h-56 transform hover:scale-105 transition-transform duration-300"></div>
-                <div class="bg-white rounded-2xl shadow-lg h-40 transform translate-y-6 hover:scale-105 transition-transform duration-300"></div>
-                <div class="bg-indigo-100 rounded-2xl h-40 transform -translate-x-6 hover:scale-105 transition-transform duration-300"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+      <div>
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          Login
+        </h2>
       </div>
+      <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
+        <div class="rounded-md shadow-sm -space-y-px">
+          <div>
+            <label for="email" class="sr-only">Email</label>
+            <input
+              id="email"
+              v-model="email"
+              name="email"
+              type="email"
+              required
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="Email"
+            />
+          </div>
+          <div>
+            <label for="password" class="sr-only">Senha</label>
+            <input
+              id="password"
+              v-model="password"
+              name="password"
+              type="password"
+              required
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="Senha"
+            />
+          </div>
+        </div>
+
+        <div v-if="error" class="text-red-500 text-sm text-center">
+          {{ error }}
+        </div>
+
+        <div>
+          <button
+            type="submit"
+            :disabled="loading"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          >
+            <span v-if="loading">
+              <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Entrando...
+            </span>
+            <span v-else>Entrar</span>
+          </button>
+        </div>
+
+        <div class="text-sm text-center">
+          <router-link to="/register" class="font-medium text-indigo-600 hover:text-indigo-500">
+            Não tem uma conta? Registre-se
+          </router-link>
+        </div>
+      </form>
     </div>
   </div>
 </template>
 
-<script setup>
+<script>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
-const router = useRouter()
-const authStore = useAuthStore()
+export default {
+  name: 'Login',
+  setup() {
+    const authStore = useAuthStore()
+    const email = ref('')
+    const password = ref('')
+    const error = ref('')
+    const loading = ref(false)
 
-const email = ref('')
-const password = ref('')
-const rememberMe = ref(false)
-const loading = ref(false)
-const error = ref('')
+    const handleLogin = async () => {
+      error.value = ''
+      loading.value = true
 
-const handleLogin = async () => {
-  try {
-    loading.value = true
-    error.value = ''
-    
-    await authStore.login(
-      email.value,
-      password.value
-    )
-    
-    router.push('/dashboard')
-  } catch (err) {
-    error.value = 'Credenciais inválidas'
-  } finally {
-    loading.value = false
+      try {
+        await authStore.login(email.value, password.value)
+      } catch (err) {
+        error.value = err.response?.data?.message || 'Erro ao fazer login. Verifique suas credenciais.'
+      } finally {
+        loading.value = false
+      }
+    }
+
+    return {
+      email,
+      password,
+      error,
+      loading,
+      handleLogin
+    }
   }
 }
 </script>
-
-<style>
-/* Reset básico */
-*, *::before, *::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* Garante que o html e body ocupem toda a altura */
-html, body, #app {
-  height: 100%;
-  min-height: 100vh;
-  width: 100%;
-  background-color: white;
-}
-
-/* Garante que inputs em iOS mantenham o estilo */
-input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-/* Animações suaves */
-.transition-transform {
-  transition-property: transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-/* Melhora a visualização em telas muito pequenas */
-@media (max-width: 360px) {
-  .text-3xl {
-    font-size: 1.5rem;
-  }
-  .text-2xl {
-    font-size: 1.25rem;
-  }
-}
-</style>

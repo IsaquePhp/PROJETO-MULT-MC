@@ -21,14 +21,27 @@ class Product extends Model
         'category',
         'brand',
         'unit',
-        'status'
+        'status',
+        'magalu_id',
+        'magalu_sku',
+        'image_url',
+        'weight',
+        'height',
+        'width',
+        'length',
+        'last_sync_at'
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'cost_price' => 'decimal:2',
         'stock' => 'integer',
-        'min_stock' => 'integer'
+        'min_stock' => 'integer',
+        'weight' => 'decimal:3',
+        'height' => 'decimal:2',
+        'width' => 'decimal:2',
+        'length' => 'decimal:2',
+        'last_sync_at' => 'datetime'
     ];
 
     // Status constants

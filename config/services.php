@@ -30,4 +30,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'magalu' => [
+        'base_url' => env('MAGALU_API_URL', 'https://api.magazineluiza.com.br'),
+        'api_key' => env('MAGALU_API_KEY'),
+    ],
+
 ];

@@ -1,153 +1,149 @@
 <template>
-  <div class="min-h-screen w-full flex bg-white">
-    <div class="container mx-auto flex">
-      <!-- Container do conteúdo -->
-      <div class="w-full flex flex-col md:flex-row items-center">
-        <!-- Lado Esquerdo - Formulário -->
-        <div class="w-full md:w-1/2 p-8 md:p-12 lg:p-16">
-          <div class="max-w-md mx-auto">
-            <!-- Logo -->
-            <div class="mb-8">
-              <h1 class="text-4xl font-bold text-indigo-600">MC</h1>
-            </div>
-
-            <!-- Título e Subtítulo -->
-            <div class="text-center mb-8">
-              <h2 class="text-3xl font-semibold text-gray-900 mb-2">Criar conta</h2>
-              <p class="text-gray-600">
-                Seja bem vindo ao MC<br />
-                Crie sua conta para acessar a plataforma.
-              </p>
-            </div>
-
-            <!-- Formulário -->
-            <form @submit.prevent="handleRegister" class="space-y-6">
-              <!-- Campo Nome -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1 text-left">Nome</label>
-                <input
-                  type="text"
-                  v-model="name"
-                  placeholder="Digite seu nome"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  required
-                />
-              </div>
-
-              <!-- Campo Email -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1 text-left">Email</label>
-                <input
-                  type="email"
-                  v-model="email"
-                  placeholder="Digite seu email"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  required
-                />
-              </div>
-
-              <!-- Campo Senha -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1 text-left">Senha</label>
-                <input
-                  type="password"
-                  v-model="password"
-                  placeholder="Digite sua senha"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  required
-                />
-              </div>
-
-              <!-- Campo Confirmar Senha -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1 text-left">Confirmar Senha</label>
-                <input
-                  type="password"
-                  v-model="password_confirmation"
-                  placeholder="Confirme sua senha"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  required
-                />
-              </div>
-
-              <!-- Botão de Registro -->
-              <button
-                type="submit"
-                :disabled="loading"
-                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-              >
-                <span v-if="loading">Carregando...</span>
-                <span v-else>Criar conta</span>
-              </button>
-
-              <!-- Link para Login -->
-              <div class="text-sm text-center pt-4">
-                <span class="text-gray-600">Já tem uma conta?</span>
-                <router-link 
-                  to="/login" 
-                  class="font-medium text-indigo-600 hover:text-indigo-500 ml-1"
-                >
-                  Fazer login
-                </router-link>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <!-- Lado Direito - Decorativo -->
-        <div class="hidden md:block md:w-1/2 bg-indigo-50 h-screen">
-          <div class="h-full w-full p-12 relative">
-            <!-- Grid de formas decorativas -->
-            <div class="absolute inset-0 grid grid-cols-2 gap-8 p-12">
-              <div class="space-y-8">
-                <div class="bg-white rounded-2xl shadow-lg h-40 transform hover:scale-105 transition-transform duration-300"></div>
-                <div class="bg-indigo-200 rounded-2xl h-56 transform translate-x-6 hover:scale-105 transition-transform duration-300"></div>
-                <div class="bg-indigo-100 rounded-2xl h-40 transform -translate-y-8 hover:scale-105 transition-transform duration-300"></div>
-              </div>
-              <div class="space-y-8 pt-12">
-                <div class="bg-indigo-300 rounded-2xl h-56 transform hover:scale-105 transition-transform duration-300"></div>
-                <div class="bg-white rounded-2xl shadow-lg h-40 transform translate-y-6 hover:scale-105 transition-transform duration-300"></div>
-                <div class="bg-indigo-100 rounded-2xl h-40 transform -translate-x-6 hover:scale-105 transition-transform duration-300"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+      <div>
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          Criar nova conta
+        </h2>
       </div>
+      <form class="mt-8 space-y-6" @submit.prevent="handleRegister">
+        <div class="rounded-md shadow-sm -space-y-px">
+          <div>
+            <label for="name" class="sr-only">Nome</label>
+            <input
+              id="name"
+              v-model="name"
+              name="name"
+              type="text"
+              required
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="Nome completo"
+            />
+          </div>
+          <div>
+            <label for="email" class="sr-only">Email</label>
+            <input
+              id="email"
+              v-model="email"
+              name="email"
+              type="email"
+              required
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="Email"
+            />
+          </div>
+          <div>
+            <label for="password" class="sr-only">Senha</label>
+            <input
+              id="password"
+              v-model="password"
+              name="password"
+              type="password"
+              required
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="Senha"
+            />
+          </div>
+          <div>
+            <label for="password_confirmation" class="sr-only">Confirmar Senha</label>
+            <input
+              id="password_confirmation"
+              v-model="passwordConfirmation"
+              name="password_confirmation"
+              type="password"
+              required
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="Confirmar senha"
+            />
+          </div>
+        </div>
+
+        <div v-if="error" class="text-red-500 text-sm text-center">
+          {{ error }}
+        </div>
+
+        <div>
+          <button
+            type="submit"
+            :disabled="loading"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          >
+            <span v-if="loading">
+              <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Registrando...
+            </span>
+            <span v-else>Registrar</span>
+          </button>
+        </div>
+
+        <div class="text-sm text-center">
+          <router-link to="/login" class="font-medium text-indigo-600 hover:text-indigo-500">
+            Já tem uma conta? Faça login
+          </router-link>
+        </div>
+      </form>
     </div>
   </div>
 </template>
 
-<script setup>
+<script>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import axios from '../plugins/axios'
 
-const router = useRouter()
-const auth = useAuthStore()
+export default {
+  name: 'Register',
+  setup() {
+    const authStore = useAuthStore()
+    const name = ref('')
+    const email = ref('')
+    const password = ref('')
+    const passwordConfirmation = ref('')
+    const error = ref('')
+    const loading = ref(false)
 
-const name = ref('')
-const email = ref('')
-const password = ref('')
-const password_confirmation = ref('')
-const loading = ref(false)
+    const handleRegister = async () => {
+      error.value = ''
+      loading.value = true
 
-const handleRegister = async () => {
-  try {
-    loading.value = true
-    const success = await auth.register(
-      name.value,
-      email.value,
-      password.value,
-      password_confirmation.value
-    )
-    
-    if (success) {
-      router.push('/dashboard')
+      if (password.value !== passwordConfirmation.value) {
+        error.value = 'As senhas não conferem'
+        loading.value = false
+        return
+      }
+
+      try {
+        // Registrar usuário
+        const response = await axios.post('/register', {
+          name: name.value,
+          email: email.value,
+          password: password.value,
+          password_confirmation: passwordConfirmation.value
+        })
+
+        // Login automático após registro
+        if (response.data.access_token) {
+          await authStore.login(email.value, password.value)
+        }
+      } catch (err) {
+        error.value = err.response?.data?.message || 'Erro ao registrar. Tente novamente.'
+      } finally {
+        loading.value = false
+      }
     }
-  } catch (error) {
-    console.error('Registration error:', error)
-  } finally {
-    loading.value = false
+
+    return {
+      name,
+      email,
+      password,
+      passwordConfirmation,
+      error,
+      loading,
+      handleRegister
+    }
   }
 }
 </script>
