@@ -8,6 +8,9 @@ use Database\Seeders\AdminUserSeeder;
 use Database\Seeders\ProductSeeder;
 use Database\Seeders\CustomerSeeder;
 use Database\Seeders\CategorySeeder;
+use Database\Seeders\ClientSeeder;
+use Database\Seeders\AdditionalCustomersSeeder;
+use Database\Seeders\AdditionalProductsSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -24,6 +27,9 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             CustomerSeeder::class,
             CategorySeeder::class,
+            ClientSeeder::class,
+            AdditionalCustomersSeeder::class,
+            AdditionalProductsSeeder::class,
             // Add other seeders here
         ]);
     }

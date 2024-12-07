@@ -204,4 +204,44 @@ class SaleController extends Controller
             'data' => $report
         ]);
     }
+
+    /**
+     * Update the status of a sale.
+     */
+    public function updateStatus(Request $request, Sale $sale)
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|string|in:pending,processing,completed,cancelled'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $sale->sale_status = $request->status;
+            $sale->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sale status updated successfully',
+                'data' => $sale
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating sale status',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

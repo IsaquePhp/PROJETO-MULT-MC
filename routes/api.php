@@ -16,6 +16,8 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductImportController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\ClientController;
 
 // Rotas públicas
 Route::post('/login', [AuthController::class, 'login']);
@@ -56,6 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{sale}', [SaleController::class, 'show']);
         Route::put('/{sale}', [SaleController::class, 'update']);
         Route::delete('/{sale}', [SaleController::class, 'destroy']);
+        Route::put('/{sale}/status', [SaleController::class, 'updateStatus']);
     });
 
     // Clientes
@@ -119,6 +122,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{store}', [StoreController::class, 'update']);
         Route::delete('/{store}', [StoreController::class, 'destroy']);
     });
+
+    // Categorias
+    Route::apiResource('categories', CategoryController::class);
+    Route::put('/categories/{category}/toggle-status', [CategoryController::class, 'toggleStatus']);
+
+    // Clientes
+    Route::apiResource('clients', ClientController::class);
+    Route::put('/clients/{client}/toggle-status', [ClientController::class, 'toggleStatus']);
 
     // Inventário
     Route::prefix('inventory')->group(function () {

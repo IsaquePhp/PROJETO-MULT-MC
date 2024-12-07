@@ -8,6 +8,7 @@ import ResetPassword from '../views/ResetPassword.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Customers from '../views/Customers.vue'
 import Categories from '../views/Categories.vue'
+import Clients from '../views/Clients.vue'
 import Products from '../views/Products.vue'
 import Orders from '../views/Orders.vue'
 import Sales from '../views/Sales.vue'
@@ -60,6 +61,12 @@ const routes = [
     path: '/categories',
     name: 'Categories',
     component: Categories,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/clients',
+    name: 'Clients',
+    component: Clients,
     meta: { requiresAuth: true }
   },
   {

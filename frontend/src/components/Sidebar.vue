@@ -49,7 +49,7 @@
             :class="[$route.path === '/categories' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
           >
             <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
             Categorias
           </router-link>
@@ -249,13 +249,13 @@
         class="profile-button w-full p-4 flex items-center bg-white"
       >
         <img
-          :src="'https://ui-avatars.com/api/?name=' + 'Usuário'"
+          :src="'https://ui-avatars.com/api/?name=' + userName"
           alt="User avatar"
           class="w-8 h-8 rounded-full"
         >
         <div class="ml-3 flex-1 text-left">
-          <p class="text-sm font-medium text-gray-700">Usuário</p>
-          <p class="text-xs text-gray-500">usuario@exemplo.com</p>
+          <p class="text-sm font-medium text-gray-700">{{ userName }}</p>
+          <p class="text-xs text-gray-500">{{ userEmail }}</p>
         </div>
         <svg 
           class="w-5 h-5 text-gray-400 transition-transform duration-200"
@@ -302,14 +302,26 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import StoreSelector from './StoreSelector.vue'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const isProfileOpen = ref(false)
 const isLogisticsOpen = ref(false)
 const isFinancialOpen = ref(false)
+
+// Computed properties for user info
+const userName = computed(() => {
+  const user = authStore.getUser
+  return user ? user.name : 'Usuário'
+})
+
+const userEmail = computed(() => {
+  const user = authStore.getUser
+  return user ? user.email : 'usuario@exemplo.com'
+})
 
 const toggleProfileMenu = () => {
   isProfileOpen.value = !isProfileOpen.value
@@ -334,9 +346,13 @@ const handleClickOutside = (event) => {
   }
 }
 
-const handleLogout = () => {
-  // Implement logout logic here
-  router.push('/login')
+const handleLogout = async () => {
+  try {
+    await authStore.logout()
+    router.push('/login')
+  } catch (error) {
+    console.error('Error during logout:', error)
+  }
 }
 
 onMounted(() => {

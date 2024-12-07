@@ -5,8 +5,24 @@
       <p class="mt-2 text-sm text-gray-700">Gerencie as categorias de produtos</p>
     </header>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="text-center py-4">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+      <p class="mt-2 text-gray-600">Carregando categorias...</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="bg-red-50 p-4 rounded-md">
+      <p class="text-red-700">{{ error }}</p>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="categories.length === 0" class="text-center py-4">
+      <p class="text-gray-600">Nenhuma categoria encontrada</p>
+    </div>
+
     <!-- Tabela de Categorias -->
-    <div class="bg-white shadow rounded-lg overflow-hidden">
+    <div v-else class="bg-white shadow rounded-lg overflow-hidden">
       <!-- Cabeçalho da Tabela -->
       <div class="p-6 border-b border-gray-200">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -32,7 +48,6 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produtos</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
             </tr>
@@ -42,7 +57,6 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{{ category.id }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ category.name }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ category.description }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ category.productCount }}</td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span 
                   class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
@@ -132,41 +146,38 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import axios from 'axios'
+import { ref, onMounted } from 'vue'
+import axios from '../plugins/axios'
 
 // State for modal and form
 const showModal = ref(false)
 const selectedCategory = ref(null)
+const categories = ref([])
+const loading = ref(false)
+const error = ref(null)
+
 const categoryForm = ref({
   name: '',
   description: ''
 })
 
-// Mock data for categories
-const categories = ref([
-  {
-    id: 1,
-    name: 'Eletrônicos',
-    description: 'Produtos eletrônicos em geral',
-    productCount: 15,
-    status: 'active'
-  },
-  {
-    id: 2,
-    name: 'Vestuário',
-    description: 'Roupas e acessórios',
-    productCount: 25,
-    status: 'active'
-  },
-  {
-    id: 3,
-    name: 'Móveis',
-    description: 'Móveis para casa e escritório',
-    productCount: 8,
-    status: 'inactive'
+// Fetch categories from API
+const fetchCategories = async () => {
+  loading.value = true
+  error.value = null
+  try {
+    const response = await axios.get('/categories')
+    categories.value = response.data.map(category => ({
+      ...category,
+      status: category.active ? 'active' : 'inactive'
+    }))
+  } catch (err) {
+    error.value = 'Erro ao carregar categorias'
+    console.error('Error fetching categories:', err)
+  } finally {
+    loading.value = false
   }
-])
+}
 
 // Open modal for new category
 const openNewCategoryModal = () => {
@@ -191,11 +202,8 @@ const editCategory = (category) => {
 // Toggle category status
 const toggleCategoryStatus = async (category) => {
   try {
-    // TODO: Implement API call
-    // await axios.patch(`/api/categories/${category.id}/toggle-status`)
-    
-    // For now, update locally
-    category.status = category.status === 'active' ? 'inactive' : 'active'
+    await axios.put(`/categories/${category.id}/toggle-status`)
+    await fetchCategories() // Refresh the list
   } catch (error) {
     console.error('Error toggling category status:', error)
   }
@@ -215,32 +223,22 @@ const closeModal = () => {
 const submitCategory = async () => {
   try {
     if (selectedCategory.value) {
-      // TODO: Implement API call for update
-      // await axios.put(`/api/categories/${selectedCategory.value.id}`, categoryForm.value)
-      
-      // For now, update locally
-      const category = categories.value.find(c => c.id === selectedCategory.value.id)
-      if (category) {
-        category.name = categoryForm.value.name
-        category.description = categoryForm.value.description
-      }
+      // Update existing category
+      await axios.put(`/categories/${selectedCategory.value.id}`, categoryForm.value)
     } else {
-      // TODO: Implement API call for create
-      // const response = await axios.post('/api/categories', categoryForm.value)
-      
-      // For now, add locally
-      categories.value.push({
-        id: categories.value.length + 1,
-        name: categoryForm.value.name,
-        description: categoryForm.value.description,
-        productCount: 0,
-        status: 'active'
-      })
+      // Create new category
+      await axios.post('/categories', categoryForm.value)
     }
     
+    await fetchCategories() // Refresh the list
     closeModal()
   } catch (error) {
     console.error('Error submitting category:', error)
   }
 }
+
+// Load categories when component mounts
+onMounted(() => {
+  fetchCategories()
+})
 </script>

@@ -6,13 +6,7 @@ export default defineConfig({
   server: {
     port: 3000,
     watch: {
-      usePolling: false,
-      interval: 5000
-    },
-    hmr: {
-      protocol: 'ws',
-      host: 'localhost',
-      port: 3000
+      usePolling: true
     }
   }
 })

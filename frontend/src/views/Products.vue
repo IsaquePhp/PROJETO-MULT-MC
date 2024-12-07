@@ -5,9 +5,6 @@
         <div class="flex justify-between items-center mb-6">
           <h1 class="text-2xl font-semibold text-gray-900">Produtos</h1>
           <div class="flex gap-2">
-            <button @click="showImportModal = true" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-              Importar do Magalu
-            </button>
             <button @click="showAddModal = true" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
               Adicionar Produto
             </button>
@@ -145,32 +142,38 @@
     </main>
 
     <!-- Modais e Toast -->
-    <ProductImportModal 
-      v-if="showImportModal"
-      @close="showImportModal = false"
-      @product-imported="onProductImported"
-    />
-
-    <!-- Modal de Adicionar/Editar Produto -->
     <div v-if="showAddModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-      <div class="bg-white rounded-lg p-6 max-w-md w-full">
+      <div class="bg-white rounded-lg p-6 max-w-4xl w-full">
         <h2 class="text-xl font-semibold mb-4">
           {{ editingProduct ? 'Editar Produto' : 'Novo Produto' }}
         </h2>
         <form @submit.prevent="saveProduct" class="space-y-4">
-          <div>
-            <label class="form-label">Nome *</label>
-            <input 
-              type="text" 
-              v-model="productForm.name" 
-              class="input-field" 
-              required 
-              minlength="3"
-              maxlength="100"
-              :class="{'border-red-500': errors.name}"
-              @input="() => delete errors.name"
-            />
-            <span v-if="errors.name" class="text-red-500 text-sm">{{ errors.name }}</span>
+          <!-- Informações Básicas -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="form-label">Nome *</label>
+              <input 
+                type="text" 
+                v-model="productForm.name" 
+                class="input-field" 
+                required
+                :class="{'border-red-500': errors.name}"
+              />
+              <span v-if="errors.name" class="text-red-500 text-sm">{{ errors.name }}</span>
+            </div>
+            
+            <div>
+              <label class="form-label">SKU *</label>
+              <input 
+                type="text" 
+                v-model="productForm.sku" 
+                class="input-field" 
+                required
+                :class="{'border-red-500': errors.sku}"
+              />
+              <span v-if="errors.sku" class="text-red-500 text-sm">{{ errors.sku }}</span>
+              <span class="text-gray-500 text-sm">Apenas letras, números e hífen</span>
+            </div>
           </div>
 
           <div>
@@ -178,60 +181,42 @@
             <textarea 
               v-model="productForm.description" 
               class="input-field" 
-              rows="3"
-              maxlength="500"
+              rows="2"
+              :class="{'border-red-500': errors.description}"
             ></textarea>
+            <span v-if="errors.description" class="text-red-500 text-sm">{{ errors.description }}</span>
           </div>
 
-          <div>
-            <label class="form-label">SKU *</label>
-            <input 
-              type="text" 
-              v-model="productForm.sku" 
-              class="input-field" 
-              required
-              pattern="[A-Za-z0-9-]+"
-              :class="{'border-red-500': errors.sku}"
-              @input="validateSku"
-            />
-            <span v-if="errors.sku" class="text-red-500 text-sm">{{ errors.sku }}</span>
-            <span class="text-gray-500 text-sm">Apenas letras, números e hífen</span>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
+          <!-- Preços e Estoque -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="form-label">Preço de Venda *</label>
-              <div class="relative">
-                <span class="absolute left-3 top-2">R$</span>
-                <input 
-                  type="text" 
-                  v-model="productForm.price" 
-                  class="input-field pl-8" 
-                  required
-                  @input="formatCurrency($event, 'price')"
-                  :class="{'border-red-500': errors.price}"
-                />
-              </div>
+              <input 
+                type="number" 
+                v-model="productForm.price" 
+                class="input-field" 
+                required
+                min="0"
+                step="0.01"
+                :class="{'border-red-500': errors.price}"
+              />
               <span v-if="errors.price" class="text-red-500 text-sm">{{ errors.price }}</span>
             </div>
+
             <div>
               <label class="form-label">Preço de Custo *</label>
-              <div class="relative">
-                <span class="absolute left-3 top-2">R$</span>
-                <input 
-                  type="text" 
-                  v-model="productForm.cost_price" 
-                  class="input-field pl-8" 
-                  required
-                  @input="formatCurrency($event, 'cost_price')"
-                  :class="{'border-red-500': errors.cost_price}"
-                />
-              </div>
+              <input 
+                type="number" 
+                v-model="productForm.cost_price" 
+                class="input-field" 
+                required
+                min="0"
+                step="0.01"
+                :class="{'border-red-500': errors.cost_price}"
+              />
               <span v-if="errors.cost_price" class="text-red-500 text-sm">{{ errors.cost_price }}</span>
             </div>
-          </div>
 
-          <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="form-label">Estoque *</label>
               <input 
@@ -240,12 +225,11 @@
                 class="input-field" 
                 required
                 min="0"
-                step="1"
-                @input="validateStock"
                 :class="{'border-red-500': errors.stock}"
               />
               <span v-if="errors.stock" class="text-red-500 text-sm">{{ errors.stock }}</span>
             </div>
+
             <div>
               <label class="form-label">Estoque Mínimo *</label>
               <input 
@@ -254,64 +238,133 @@
                 class="input-field" 
                 required
                 min="0"
-                step="1"
-                @input="validateStock"
                 :class="{'border-red-500': errors.min_stock}"
               />
               <span v-if="errors.min_stock" class="text-red-500 text-sm">{{ errors.min_stock }}</span>
             </div>
           </div>
 
-          <div>
-            <label class="form-label">Unidade *</label>
-            <input 
-              type="text" 
-              v-model="productForm.unit" 
-              class="input-field" 
-              required
-            />
+          <!-- Categoria e Unidade -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="form-label">Categoria *</label>
+              <select 
+                v-model="productForm.category" 
+                class="input-field" 
+                required
+                :class="{'border-red-500': errors.category}"
+              >
+                <option value="">Selecione uma categoria</option>
+                <option v-for="category in categories" :key="category" :value="category">
+                  {{ category }}
+                </option>
+              </select>
+              <span v-if="errors.category" class="text-red-500 text-sm">{{ errors.category }}</span>
+            </div>
+
+            <div>
+              <label class="form-label">Unidade *</label>
+              <select
+                v-model="productForm.unit" 
+                class="input-field" 
+                required
+                :class="{'border-red-500': errors.unit}"
+              >
+                <option value="">Selecione uma unidade</option>
+                <option value="un">Unidade (un)</option>
+                <option value="kg">Quilograma (kg)</option>
+                <option value="l">Litro (l)</option>
+                <option value="m">Metro (m)</option>
+                <option value="cx">Caixa (cx)</option>
+              </select>
+              <span v-if="errors.unit" class="text-red-500 text-sm">{{ errors.unit }}</span>
+            </div>
+
+            <div>
+              <label class="form-label">Marca *</label>
+              <input 
+                type="text" 
+                v-model="productForm.brand" 
+                class="input-field" 
+                required
+                :class="{'border-red-500': errors.brand}"
+              />
+              <span v-if="errors.brand" class="text-red-500 text-sm">{{ errors.brand }}</span>
+            </div>
           </div>
 
-          <div>
-            <label class="form-label">Categoria *</label>
-            <select 
-              v-model="productForm.category" 
-              class="input-field" 
-              required
-              :class="{'border-red-500': errors.category}"
-              @change="validateCategory"
-            >
-              <option value="">Selecione uma categoria</option>
-              <option v-for="category in defaultCategories" :key="category" :value="category">
-                {{ category }}
-              </option>
-              <option value="other">Outra...</option>
-            </select>
-            <input 
-              v-if="productForm.category === 'other'"
-              type="text"
-              v-model="newCategory"
-              class="input-field mt-2"
-              placeholder="Digite a nova categoria"
-              @input="validateCategory"
-              :class="{'border-red-500': errors.category}"
-            />
-            <span v-if="errors.category" class="text-red-500 text-sm">{{ errors.category }}</span>
+          <!-- Dimensões -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="form-label">Peso (kg) *</label>
+              <input 
+                type="number" 
+                v-model="productForm.weight" 
+                class="input-field" 
+                required
+                min="0"
+                step="0.01"
+                :class="{'border-red-500': errors.weight}"
+              />
+              <span v-if="errors.weight" class="text-red-500 text-sm">{{ errors.weight }}</span>
+            </div>
+
+            <div>
+              <label class="form-label">Largura (cm) *</label>
+              <input 
+                type="number" 
+                v-model="productForm.width" 
+                class="input-field" 
+                required
+                min="0"
+                step="0.1"
+                :class="{'border-red-500': errors.width}"
+              />
+              <span v-if="errors.width" class="text-red-500 text-sm">{{ errors.width }}</span>
+            </div>
+
+            <div>
+              <label class="form-label">Altura (cm) *</label>
+              <input 
+                type="number" 
+                v-model="productForm.height" 
+                class="input-field" 
+                required
+                min="0"
+                step="0.1"
+                :class="{'border-red-500': errors.height}"
+              />
+              <span v-if="errors.height" class="text-red-500 text-sm">{{ errors.height }}</span>
+            </div>
+
+            <div>
+              <label class="form-label">Comprimento (cm) *</label>
+              <input 
+                type="number" 
+                v-model="productForm.length" 
+                class="input-field" 
+                required
+                min="0"
+                step="0.1"
+                :class="{'border-red-500': errors.length}"
+              />
+              <span v-if="errors.length" class="text-red-500 text-sm">{{ errors.length }}</span>
+            </div>
           </div>
 
-          <div class="flex justify-end space-x-4">
+          <div class="flex justify-end space-x-4 mt-6">
             <button 
               type="button" 
               @click="closeModal" 
-              class="btn-secondary"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
               :disabled="isSaving"
             >
               Cancelar
             </button>
             <button 
-              type="submit" 
-              class="btn-primary" 
-              :disabled="isSaving || Object.keys(errors).length > 0"
+              type="submit"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+              :disabled="isSaving"
             >
               {{ isSaving ? 'Salvando...' : (editingProduct ? 'Atualizar' : 'Salvar') }}
             </button>
@@ -333,14 +386,12 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import axios from '../plugins/axios'
-import ProductImportModal from '../components/ProductImportModal.vue'
 
 // Refs
 const products = ref([])
 const categories = ref([])
 const loading = ref(false)
 const showAddModal = ref(false)
-const showImportModal = ref(false)
 const showToast = ref(false)
 const toastMessage = ref('')
 const editingProduct = ref(null)
@@ -352,11 +403,18 @@ const productForm = ref({
   name: '',
   description: '',
   sku: '',
-  category: '',
   price: '',
+  cost_price: '',
   stock: '',
   min_stock: '',
-  status: 'active'
+  category: '',
+  unit: '',
+  status: 'active',
+  brand: '',
+  weight: '',
+  width: '',
+  height: '',
+  length: ''
 })
 
 const filters = ref({
@@ -404,7 +462,7 @@ async function loadProducts() {
 async function loadCategories() {
   try {
     const response = await axios.get('/categories')
-    categories.value = response.data
+    categories.value = response.data.map(category => category.name)
   } catch (error) {
     console.error('Error loading categories:', error)
   }
@@ -422,50 +480,103 @@ function validateSku() {
 
 // Salvar produto
 async function saveProduct() {
-  if (Object.keys(errors.value).length > 0) return
-
-  isSaving.value = true
   try {
-    const endpoint = editingProduct.value ? `/products/${editingProduct.value.id}` : '/products'
-    const method = editingProduct.value ? 'put' : 'post'
+    isSaving.value = true
+    errors.value = {} // Limpar erros anteriores
     
-    const response = await axios[method](endpoint, productForm.value)
+    // Validar campos obrigatórios
+    const requiredFields = ['name', 'sku', 'price', 'category']
+    const missingFields = requiredFields.filter(field => !productForm.value[field])
+    
+    if (missingFields.length > 0) {
+      errors.value = missingFields.reduce((acc, field) => {
+        acc[field] = ['Este campo é obrigatório']
+        return acc
+      }, {})
+      throw new Error('VALIDATION_ERROR')
+    }
+
+    // Validar estoque mínimo
+    const stock = Number(productForm.value.stock) || 0
+    const minStock = Number(productForm.value.min_stock) || 0
+    
+    if (minStock > stock) {
+      errors.value.min_stock = ['O estoque mínimo não pode ser maior que o estoque atual.']
+      throw new Error('VALIDATION_ERROR')
+    }
+
+    const formData = { ...productForm.value }
+    console.log('Saving product:', formData) // Log para debug
+    
+    if (editingProduct.value) {
+      const id = editingProduct.value.id
+      console.log('Updating product ID:', id) // Log para debug
+      await axios.put(`/products/${id}`, formData)
+      toastMessage.value = 'Produto atualizado com sucesso!'
+    } else {
+      await axios.post('/products', formData)
+      toastMessage.value = 'Produto criado com sucesso!'
+    }
     
     showToast.value = true
-    toastMessage.value = editingProduct.value ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!'
-    
-    await loadProducts()
     closeModal()
+    await loadProducts() // Aguardar o recarregamento dos produtos
   } catch (error) {
     console.error('Error saving product:', error)
-    showToast.value = true
-    toastMessage.value = 'Erro ao salvar produto'
+    if (error.response?.data?.errors) {
+      errors.value = error.response.data.errors
+    } else if (error.message !== 'VALIDATION_ERROR') {
+      toastMessage.value = 'Erro ao salvar produto. Tente novamente.'
+      showToast.value = true
+    }
   } finally {
     isSaving.value = false
   }
 }
 
-// Editar produto
 function editProduct(product) {
+  console.log('Editing product:', product) // Log para debug
   editingProduct.value = product
-  productForm.value = { ...product }
+  productForm.value = { 
+    name: product.name || '',
+    description: product.description || '',
+    sku: product.sku || '',
+    price: product.price || '',
+    cost_price: product.cost_price || '',
+    stock: product.stock || '',
+    min_stock: product.min_stock || '',
+    category: product.category || '',
+    unit: product.unit || '',
+    status: product.status || 'active',
+    brand: product.brand || '',
+    weight: product.weight || '',
+    width: product.width || '',
+    height: product.height || '',
+    length: product.length || ''
+  }
   showAddModal.value = true
 }
 
 // Fechar modal
 function closeModal() {
   showAddModal.value = false
-  showImportModal.value = false
   editingProduct.value = null
   productForm.value = {
     name: '',
     description: '',
     sku: '',
-    category: '',
     price: '',
+    cost_price: '',
     stock: '',
     min_stock: '',
-    status: 'active'
+    category: '',
+    unit: '',
+    status: 'active',
+    brand: '',
+    weight: '',
+    width: '',
+    height: '',
+    length: ''
   }
   errors.value = {}
 }

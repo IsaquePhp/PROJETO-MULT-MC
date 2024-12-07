@@ -41,6 +41,13 @@ instance.interceptors.response.use(
       if (error.response.status === 422) {
         return Promise.reject(error.response.data)
       }
+
+      // Log de erro para debug
+      console.error('API Error:', {
+        status: error.response.status,
+        data: error.response.data,
+        url: error.config.url
+      })
     }
     
     return Promise.reject(error)
