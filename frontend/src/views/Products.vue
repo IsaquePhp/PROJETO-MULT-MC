@@ -4,11 +4,9 @@
       <div class="px-4 py-6 sm:px-0">
         <div class="flex justify-between items-center mb-6">
           <h1 class="text-2xl font-semibold text-gray-900">Produtos</h1>
-          <div class="flex gap-2">
-            <button @click="showAddModal = true" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              Adicionar Produto
-            </button>
-          </div>
+          <button @click="showAddModal = true" class="btn-primary">
+            Adicionar Produto
+          </button>
         </div>
 
         <!-- Filtros -->
@@ -21,21 +19,24 @@
                 v-model="filters.search" 
                 class="input-field" 
                 placeholder="Nome, SKU ou código"
-                @input="debouncedLoadProducts"
               />
             </div>
             <div>
               <label class="form-label">Categoria</label>
-              <select v-model="filters.category" class="input-field" @change="loadProducts">
+              <select v-model="filters.category_id" class="input-field">
                 <option value="">Todas</option>
-                <option v-for="category in categories" :key="category" :value="category">
-                  {{ category }}
+                <option 
+                  v-for="category in categories" 
+                  :key="category.id" 
+                  :value="category.id"
+                >
+                  {{ category.name }}
                 </option>
               </select>
             </div>
             <div>
               <label class="form-label">Status</label>
-              <select v-model="filters.status" class="input-field" @change="loadProducts">
+              <select v-model="filters.status" class="input-field">
                 <option value="">Todos</option>
                 <option value="active">Ativo</option>
                 <option value="inactive">Inativo</option>
@@ -43,7 +44,7 @@
             </div>
             <div>
               <label class="form-label">Estoque</label>
-              <select v-model="filters.stock" class="input-field" @change="loadProducts">
+              <select v-model="filters.stock" class="input-field">
                 <option value="">Todos</option>
                 <option value="low">Baixo</option>
                 <option value="normal">Normal</option>
@@ -55,18 +56,7 @@
 
         <!-- Lista de Produtos -->
         <div class="card">
-          <!-- Loading state -->
-          <div v-if="loading" class="py-12 text-center text-gray-500">
-            Carregando produtos...
-          </div>
-
-          <!-- Empty state -->
-          <div v-else-if="products.length === 0" class="py-12 text-center text-gray-500">
-            Nenhum produto encontrado.
-          </div>
-
-          <!-- Products table -->
-          <table v-else class="min-w-full divide-y divide-gray-200">
+          <table class="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -98,7 +88,7 @@
                         {{ product.name }}
                       </div>
                       <div class="text-sm text-gray-500">
-                        {{ product.category }}
+                        {{ getCategoryName(product.category_id) }}
                       </div>
                     </div>
                   </div>
@@ -117,18 +107,18 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span :class="getStatusClass(product.status)">
-                    {{ product.status === 'active' ? 'Ativo' : 'Inativo' }}
+                    {{ product.status }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button 
-                    @click="editProduct(product)"
+                    @click="editProduct(product)" 
                     class="text-blue-600 hover:text-blue-900 mr-4"
                   >
                     Editar
                   </button>
                   <button 
-                    @click="deleteProduct(product.id)"
+                    @click="deleteProduct(product.id)" 
                     class="text-red-600 hover:text-red-900"
                   >
                     Excluir
@@ -141,242 +131,224 @@
       </div>
     </main>
 
-    <!-- Modais e Toast -->
-    <div v-if="showAddModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-      <div class="bg-white rounded-lg p-6 max-w-4xl w-full">
-        <h2 class="text-xl font-semibold mb-4">
-          {{ editingProduct ? 'Editar Produto' : 'Novo Produto' }}
-        </h2>
-        <form @submit.prevent="saveProduct" class="space-y-4">
-          <!-- Informações Básicas -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="form-label">Nome *</label>
-              <input 
-                type="text" 
-                v-model="productForm.name" 
-                class="input-field" 
-                required
-                :class="{'border-red-500': errors.name}"
-              />
-              <span v-if="errors.name" class="text-red-500 text-sm">{{ errors.name }}</span>
-            </div>
-            
-            <div>
-              <label class="form-label">SKU *</label>
-              <input 
-                type="text" 
-                v-model="productForm.sku" 
-                class="input-field" 
-                required
-                :class="{'border-red-500': errors.sku}"
-              />
-              <span v-if="errors.sku" class="text-red-500 text-sm">{{ errors.sku }}</span>
-              <span class="text-gray-500 text-sm">Apenas letras, números e hífen</span>
-            </div>
-          </div>
+    <!-- Modal de Adicionar/Editar Produto -->
+    <TransitionRoot appear :show="showAddModal" as="template">
+      <Dialog as="div" @close="closeModal" class="relative z-10">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/25" />
+        </TransitionChild>
 
-          <div>
-            <label class="form-label">Descrição</label>
-            <textarea 
-              v-model="productForm.description" 
-              class="input-field" 
-              rows="2"
-              :class="{'border-red-500': errors.description}"
-            ></textarea>
-            <span v-if="errors.description" class="text-red-500 text-sm">{{ errors.description }}</span>
-          </div>
-
-          <!-- Preços e Estoque -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label class="form-label">Preço de Venda *</label>
-              <input 
-                type="number" 
-                v-model="productForm.price" 
-                class="input-field" 
-                required
-                min="0"
-                step="0.01"
-                :class="{'border-red-500': errors.price}"
-              />
-              <span v-if="errors.price" class="text-red-500 text-sm">{{ errors.price }}</span>
-            </div>
-
-            <div>
-              <label class="form-label">Preço de Custo *</label>
-              <input 
-                type="number" 
-                v-model="productForm.cost_price" 
-                class="input-field" 
-                required
-                min="0"
-                step="0.01"
-                :class="{'border-red-500': errors.cost_price}"
-              />
-              <span v-if="errors.cost_price" class="text-red-500 text-sm">{{ errors.cost_price }}</span>
-            </div>
-
-            <div>
-              <label class="form-label">Estoque *</label>
-              <input 
-                type="number" 
-                v-model="productForm.stock" 
-                class="input-field" 
-                required
-                min="0"
-                :class="{'border-red-500': errors.stock}"
-              />
-              <span v-if="errors.stock" class="text-red-500 text-sm">{{ errors.stock }}</span>
-            </div>
-
-            <div>
-              <label class="form-label">Estoque Mínimo *</label>
-              <input 
-                type="number" 
-                v-model="productForm.min_stock" 
-                class="input-field" 
-                required
-                min="0"
-                :class="{'border-red-500': errors.min_stock}"
-              />
-              <span v-if="errors.min_stock" class="text-red-500 text-sm">{{ errors.min_stock }}</span>
-            </div>
-          </div>
-
-          <!-- Categoria e Unidade -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="form-label">Categoria *</label>
-              <select 
-                v-model="productForm.category" 
-                class="input-field" 
-                required
-                :class="{'border-red-500': errors.category}"
-              >
-                <option value="">Selecione uma categoria</option>
-                <option v-for="category in categories" :key="category" :value="category">
-                  {{ category }}
-                </option>
-              </select>
-              <span v-if="errors.category" class="text-red-500 text-sm">{{ errors.category }}</span>
-            </div>
-
-            <div>
-              <label class="form-label">Unidade *</label>
-              <select
-                v-model="productForm.unit" 
-                class="input-field" 
-                required
-                :class="{'border-red-500': errors.unit}"
-              >
-                <option value="">Selecione uma unidade</option>
-                <option value="un">Unidade (un)</option>
-                <option value="kg">Quilograma (kg)</option>
-                <option value="l">Litro (l)</option>
-                <option value="m">Metro (m)</option>
-                <option value="cx">Caixa (cx)</option>
-              </select>
-              <span v-if="errors.unit" class="text-red-500 text-sm">{{ errors.unit }}</span>
-            </div>
-
-            <div>
-              <label class="form-label">Marca *</label>
-              <input 
-                type="text" 
-                v-model="productForm.brand" 
-                class="input-field" 
-                required
-                :class="{'border-red-500': errors.brand}"
-              />
-              <span v-if="errors.brand" class="text-red-500 text-sm">{{ errors.brand }}</span>
-            </div>
-          </div>
-
-          <!-- Dimensões -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label class="form-label">Peso (kg) *</label>
-              <input 
-                type="number" 
-                v-model="productForm.weight" 
-                class="input-field" 
-                required
-                min="0"
-                step="0.01"
-                :class="{'border-red-500': errors.weight}"
-              />
-              <span v-if="errors.weight" class="text-red-500 text-sm">{{ errors.weight }}</span>
-            </div>
-
-            <div>
-              <label class="form-label">Largura (cm) *</label>
-              <input 
-                type="number" 
-                v-model="productForm.width" 
-                class="input-field" 
-                required
-                min="0"
-                step="0.1"
-                :class="{'border-red-500': errors.width}"
-              />
-              <span v-if="errors.width" class="text-red-500 text-sm">{{ errors.width }}</span>
-            </div>
-
-            <div>
-              <label class="form-label">Altura (cm) *</label>
-              <input 
-                type="number" 
-                v-model="productForm.height" 
-                class="input-field" 
-                required
-                min="0"
-                step="0.1"
-                :class="{'border-red-500': errors.height}"
-              />
-              <span v-if="errors.height" class="text-red-500 text-sm">{{ errors.height }}</span>
-            </div>
-
-            <div>
-              <label class="form-label">Comprimento (cm) *</label>
-              <input 
-                type="number" 
-                v-model="productForm.length" 
-                class="input-field" 
-                required
-                min="0"
-                step="0.1"
-                :class="{'border-red-500': errors.length}"
-              />
-              <span v-if="errors.length" class="text-red-500 text-sm">{{ errors.length }}</span>
-            </div>
-          </div>
-
-          <div class="flex justify-end space-x-4 mt-6">
-            <button 
-              type="button" 
-              @click="closeModal" 
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
-              :disabled="isSaving"
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
             >
-              Cancelar
-            </button>
-            <button 
-              type="submit"
-              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
-              :disabled="isSaving"
-            >
-              {{ isSaving ? 'Salvando...' : (editingProduct ? 'Atualizar' : 'Salvar') }}
-            </button>
+              <DialogPanel class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
+                <DialogTitle as="h3" class="text-xl font-semibold leading-6 text-gray-900 mb-4">
+                  {{ editingProduct ? 'Editar Produto' : 'Novo Produto' }}
+                </DialogTitle>
+
+                <form @submit.prevent="saveProduct" class="space-y-4">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="form-label">Nome *</label>
+                      <input 
+                        type="text" 
+                        v-model="productForm.name" 
+                        class="input-field" 
+                        required 
+                        minlength="3"
+                        maxlength="100"
+                        :class="{'border-red-500': errors.name}"
+                        @input="() => delete errors.name"
+                      />
+                      <span v-if="errors.name" class="text-red-500 text-sm">{{ errors.name }}</span>
+                    </div>
+
+                    <div>
+                      <label class="form-label">SKU *</label>
+                      <input 
+                        type="text" 
+                        v-model="productForm.sku" 
+                        class="input-field" 
+                        required
+                        pattern="[A-Za-z0-9-]+"
+                        :class="{'border-red-500': errors.sku}"
+                        @input="validateSku"
+                      />
+                      <span v-if="errors.sku" class="text-red-500 text-sm">{{ errors.sku }}</span>
+                      <span class="text-gray-500 text-sm">Apenas letras, números e hífen</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="form-label">Descrição</label>
+                    <textarea 
+                      v-model="productForm.description" 
+                      class="input-field" 
+                      rows="3"
+                      maxlength="500"
+                    ></textarea>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="form-label">Preço de Venda *</label>
+                      <div class="relative">
+                        <span class="absolute left-3 top-2 text-gray-500">R$</span>
+                        <input 
+                          type="text" 
+                          v-model="productForm.price" 
+                          class="input-field pl-8" 
+                          required
+                          @input="formatCurrency($event, 'price')"
+                          :class="{'border-red-500': errors.price}"
+                        />
+                      </div>
+                      <span v-if="errors.price" class="text-red-500 text-sm">{{ errors.price }}</span>
+                    </div>
+                    <div>
+                      <label class="form-label">Preço de Custo *</label>
+                      <div class="relative">
+                        <span class="absolute left-3 top-2 text-gray-500">R$</span>
+                        <input 
+                          type="text" 
+                          v-model="productForm.cost_price" 
+                          class="input-field pl-8" 
+                          required
+                          @input="formatCurrency($event, 'cost_price')"
+                          :class="{'border-red-500': errors.cost_price}"
+                        />
+                      </div>
+                      <span v-if="errors.cost_price" class="text-red-500 text-sm">{{ errors.cost_price }}</span>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label class="form-label">Estoque *</label>
+                      <input 
+                        type="number" 
+                        v-model="productForm.stock" 
+                        class="input-field" 
+                        required
+                        min="0"
+                        step="1"
+                        @input="validateStock"
+                        :class="{'border-red-500': errors.stock}"
+                      />
+                      <span v-if="errors.stock" class="text-red-500 text-sm">{{ errors.stock }}</span>
+                    </div>
+                    <div>
+                      <label class="form-label">Estoque Mínimo *</label>
+                      <input 
+                        type="number" 
+                        v-model="productForm.min_stock" 
+                        class="input-field" 
+                        required
+                        min="0"
+                        step="1"
+                        @input="validateStock"
+                        :class="{'border-red-500': errors.min_stock}"
+                      />
+                      <span v-if="errors.min_stock" class="text-red-500 text-sm">{{ errors.min_stock }}</span>
+                    </div>
+                    <div>
+                      <label class="form-label">Unidade *</label>
+                      <select 
+                        v-model="productForm.unit" 
+                        class="input-field" 
+                        required
+                      >
+                        <option value="un">Unidade (un)</option>
+                        <option value="kg">Quilograma (kg)</option>
+                        <option value="g">Grama (g)</option>
+                        <option value="l">Litro (l)</option>
+                        <option value="ml">Mililitro (ml)</option>
+                        <option value="m">Metro (m)</option>
+                        <option value="cm">Centímetro (cm)</option>
+                        <option value="m2">Metro Quadrado (m²)</option>
+                        <option value="m3">Metro Cúbico (m³)</option>
+                        <option value="cx">Caixa (cx)</option>
+                        <option value="pct">Pacote (pct)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="form-label">Categoria *</label>
+                    <select 
+                      v-model="productForm.category_id" 
+                      class="input-field" 
+                      required
+                      :class="{'border-red-500': errors.category_id}"
+                    >
+                      <option value="">Selecione uma categoria</option>
+                      <option 
+                        v-for="category in categories" 
+                        :key="category.id" 
+                        :value="category.id"
+                        :disabled="!category.active"
+                      >
+                        {{ category.name }}
+                        <span v-if="!category.active" class="text-gray-400">(Inativa)</span>
+                      </option>
+                    </select>
+                    <span v-if="errors.category_id" class="text-red-500 text-sm">{{ errors.category_id }}</span>
+                  </div>
+
+                  <div class="flex justify-end space-x-4 mt-6">
+                    <button 
+                      type="button" 
+                      @click="closeModal" 
+                      class="btn-secondary"
+                      :disabled="isSaving"
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      type="submit" 
+                      class="btn-primary" 
+                      :disabled="isSaving || Object.keys(errors).length > 0"
+                    >
+                      <span v-if="isSaving" class="flex items-center">
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Salvando...
+                      </span>
+                      <span v-else>
+                        {{ editingProduct ? 'Atualizar' : 'Salvar' }}
+                      </span>
+                    </button>
+                  </div>
+                </form>
+              </DialogPanel>
+            </TransitionChild>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
 
     <!-- Toast de Sucesso -->
     <div 
       v-if="showToast" 
-      class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg"
+      class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg"
     >
       {{ toastMessage }}
     </div>
@@ -386,19 +358,42 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import axios from '../plugins/axios'
+import { useToast } from '../composables/useToast'
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  TransitionChild,
+  TransitionRoot,
+} from '@headlessui/vue'
 
-// Refs
 const products = ref([])
 const categories = ref([])
-const loading = ref(false)
 const showAddModal = ref(false)
-const showToast = ref(false)
-const toastMessage = ref('')
 const editingProduct = ref(null)
-const isSaving = ref(false)
 const errors = ref({})
+const isSaving = ref(false)
+const { showToast, toastMessage, showSuccessToast } = useToast()
 
-// Form state
+const defaultCategories = [
+  'Roupas',
+  'Calçados',
+  'Acessórios',
+  'Eletrônicos',
+  'Móveis',
+  'Decoração',
+  'Brinquedos',
+  'Livros',
+  'Outros'
+]
+
+const filters = ref({
+  search: '',
+  category_id: '',
+  status: '',
+  stock: ''
+})
+
 const productForm = ref({
   name: '',
   description: '',
@@ -407,24 +402,23 @@ const productForm = ref({
   cost_price: '',
   stock: '',
   min_stock: '',
-  category: '',
-  unit: '',
-  status: 'active',
-  brand: '',
-  weight: '',
-  width: '',
-  height: '',
-  length: ''
+  unit: 'un',
+  category_id: '',
+  status: 'active'
 })
 
-const filters = ref({
-  search: '',
-  category: '',
-  status: '',
-  stock: ''
+const isFormValid = computed(() => {
+  return productForm.value.name &&
+    productForm.value.sku &&
+    productForm.value.price &&
+    productForm.value.cost_price &&
+    productForm.value.stock &&
+    productForm.value.min_stock &&
+    productForm.value.category_id &&
+    productForm.value.unit &&
+    Object.keys(errors.value).length === 0
 })
 
-// Carregar produtos quando o componente é montado
 onMounted(async () => {
   await Promise.all([
     loadProducts(),
@@ -432,132 +426,77 @@ onMounted(async () => {
   ])
 })
 
-// Debounce para a busca
-let searchTimeout
-const debouncedLoadProducts = () => {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    loadProducts()
-  }, 300)
-}
-
-// Carregar produtos com loading state
-async function loadProducts() {
-  loading.value = true
-  try {
-    const response = await axios.get('/products', {
-      params: filters.value
-    })
-    products.value = response.data
-  } catch (error) {
-    console.error('Error loading products:', error)
-    showToast.value = true
-    toastMessage.value = 'Erro ao carregar produtos'
-  } finally {
-    loading.value = false
+function formatCurrency(event, field) {
+  let value = event.target.value.replace(/\D/g, '')
+  if (value === '') {
+    productForm.value[field] = ''
+    return
   }
-}
-
-// Carregar categorias
-async function loadCategories() {
-  try {
-    const response = await axios.get('/categories')
-    categories.value = response.data.map(category => category.name)
-  } catch (error) {
-    console.error('Error loading categories:', error)
+  value = (parseFloat(value) / 100).toFixed(2)
+  if (isNaN(value)) {
+    productForm.value[field] = ''
+    return
   }
+  productForm.value[field] = value
+  validatePrice(field)
 }
 
-// Validar SKU
-function validateSku() {
-  const skuPattern = /^[A-Za-z0-9-]+$/
-  if (!skuPattern.test(productForm.value.sku)) {
+function validatePrice(field) {
+  const value = parseFloat(productForm.value[field])
+  if (isNaN(value) || value < 0) {
+    errors.value[field] = 'O valor deve ser maior que zero'
+    return false
+  }
+  delete errors.value[field]
+  return true
+}
+
+function validateStock() {
+  const stock = parseInt(productForm.value.stock)
+  const minStock = parseInt(productForm.value.min_stock)
+
+  if (isNaN(stock) || stock < 0) {
+    errors.value.stock = 'O estoque deve ser maior ou igual a zero'
+    return false
+  }
+  delete errors.value.stock
+
+  if (isNaN(minStock) || minStock < 0) {
+    errors.value.min_stock = 'O estoque mínimo deve ser maior ou igual a zero'
+    return false
+  }
+  
+  if (minStock > stock) {
+    errors.value.min_stock = 'O estoque mínimo não pode ser maior que o estoque atual'
+    return false
+  }
+  delete errors.value.min_stock
+  return true
+}
+
+async function validateSku() {
+  if (!productForm.value.sku) {
+    errors.value.sku = 'SKU é obrigatório'
+    return
+  }
+
+  if (!/^[A-Za-z0-9-]+$/.test(productForm.value.sku)) {
     errors.value.sku = 'SKU deve conter apenas letras, números e hífen'
-  } else {
-    delete errors.value.sku
+    return
   }
-}
 
-// Salvar produto
-async function saveProduct() {
   try {
-    isSaving.value = true
-    errors.value = {} // Limpar erros anteriores
-    
-    // Validar campos obrigatórios
-    const requiredFields = ['name', 'sku', 'price', 'category']
-    const missingFields = requiredFields.filter(field => !productForm.value[field])
-    
-    if (missingFields.length > 0) {
-      errors.value = missingFields.reduce((acc, field) => {
-        acc[field] = ['Este campo é obrigatório']
-        return acc
-      }, {})
-      throw new Error('VALIDATION_ERROR')
-    }
-
-    // Validar estoque mínimo
-    const stock = Number(productForm.value.stock) || 0
-    const minStock = Number(productForm.value.min_stock) || 0
-    
-    if (minStock > stock) {
-      errors.value.min_stock = ['O estoque mínimo não pode ser maior que o estoque atual.']
-      throw new Error('VALIDATION_ERROR')
-    }
-
-    const formData = { ...productForm.value }
-    console.log('Saving product:', formData) // Log para debug
-    
-    if (editingProduct.value) {
-      const id = editingProduct.value.id
-      console.log('Updating product ID:', id) // Log para debug
-      await axios.put(`/products/${id}`, formData)
-      toastMessage.value = 'Produto atualizado com sucesso!'
+    const response = await axios.get(`/products/check-sku/${productForm.value.sku}`)
+    if (response.data.exists && (!editingProduct.value || editingProduct.value.sku !== productForm.value.sku)) {
+      errors.value.sku = 'SKU já existe'
     } else {
-      await axios.post('/products', formData)
-      toastMessage.value = 'Produto criado com sucesso!'
+      delete errors.value.sku
     }
-    
-    showToast.value = true
-    closeModal()
-    await loadProducts() // Aguardar o recarregamento dos produtos
   } catch (error) {
-    console.error('Error saving product:', error)
-    if (error.response?.data?.errors) {
-      errors.value = error.response.data.errors
-    } else if (error.message !== 'VALIDATION_ERROR') {
-      toastMessage.value = 'Erro ao salvar produto. Tente novamente.'
-      showToast.value = true
-    }
-  } finally {
-    isSaving.value = false
+    console.error('Error checking SKU:', error)
   }
 }
 
-function editProduct(product) {
-  console.log('Editing product:', product) // Log para debug
-  editingProduct.value = product
-  productForm.value = { 
-    name: product.name || '',
-    description: product.description || '',
-    sku: product.sku || '',
-    price: product.price || '',
-    cost_price: product.cost_price || '',
-    stock: product.stock || '',
-    min_stock: product.min_stock || '',
-    category: product.category || '',
-    unit: product.unit || '',
-    status: product.status || 'active',
-    brand: product.brand || '',
-    weight: product.weight || '',
-    width: product.width || '',
-    height: product.height || '',
-    length: product.length || ''
-  }
-  showAddModal.value = true
-}
-
-// Fechar modal
 function closeModal() {
   showAddModal.value = false
   editingProduct.value = null
@@ -569,46 +508,123 @@ function closeModal() {
     cost_price: '',
     stock: '',
     min_stock: '',
-    category: '',
-    unit: '',
-    status: 'active',
-    brand: '',
-    weight: '',
-    width: '',
-    height: '',
-    length: ''
+    unit: 'un',
+    category_id: '',
+    status: 'active'
   }
   errors.value = {}
 }
 
-// Deletar produto
+async function saveProduct() {
+  errors.value = {}
+  
+  // Validações antes de enviar
+  if (!productForm.value.name || productForm.value.name.length < 3) {
+    errors.value.name = 'O nome deve ter pelo menos 3 caracteres'
+    return
+  }
+
+  if (!productForm.value.sku) {
+    errors.value.sku = 'O SKU é obrigatório'
+    return
+  }
+
+  if (!validatePrice('price')) return
+  if (!validatePrice('cost_price')) return
+  if (!validateStock()) return
+
+  if (!productForm.value.category_id) {
+    errors.value.category_id = 'A categoria é obrigatória'
+    return
+  }
+
+  if (!productForm.value.unit) {
+    errors.value.unit = 'A unidade é obrigatória'
+    return
+  }
+
+  isSaving.value = true
+  try {
+    const formData = { ...productForm.value }
+    
+    // Converter valores monetários para números
+    formData.price = parseFloat(formData.price)
+    formData.cost_price = parseFloat(formData.cost_price)
+    
+    // Converter valores de estoque para inteiros
+    formData.stock = parseInt(formData.stock)
+    formData.min_stock = parseInt(formData.min_stock)
+    
+    if (editingProduct.value) {
+      await axios.put(`/products/${editingProduct.value.id}`, formData)
+      showSuccessToast('Produto atualizado com sucesso!')
+    } else {
+      await axios.post('/products', formData)
+      showSuccessToast('Produto criado com sucesso!')
+    }
+    
+    await loadProducts()
+    closeModal()
+  } catch (error) {
+    if (error.response?.data?.errors) {
+      errors.value = error.response.data.errors
+    } else {
+      showToast('Erro ao salvar produto. Tente novamente.')
+    }
+  } finally {
+    isSaving.value = false
+  }
+}
+
+async function loadProducts() {
+  try {
+    const response = await axios.get('/products', {
+      params: filters.value
+    })
+    products.value = response.data
+  } catch (error) {
+    console.error('Error loading products:', error)
+    showToast('Erro ao carregar produtos')
+  }
+}
+
+async function loadCategories() {
+  try {
+    const response = await axios.get('/categories')
+    categories.value = response.data
+  } catch (error) {
+    console.error('Error loading categories:', error)
+    showToast('Erro ao carregar categorias')
+  }
+}
+
+function editProduct(product) {
+  editingProduct.value = product
+  productForm.value = { ...product }
+  showAddModal.value = true
+}
+
 async function deleteProduct(id) {
   if (!confirm('Tem certeza que deseja excluir este produto?')) return
   
   try {
     await axios.delete(`/products/${id}`)
-    showToast.value = true
-    toastMessage.value = 'Produto excluído com sucesso!'
     await loadProducts()
   } catch (error) {
     console.error('Error deleting product:', error)
-    showToast.value = true
-    toastMessage.value = 'Erro ao excluir produto'
   }
 }
 
-// Callback quando um produto é importado
-function onProductImported(product) {
-  showToast.value = true
-  toastMessage.value = 'Produto importado com sucesso!'
-  loadProducts()
-  showImportModal.value = false
+function getStatusClass(status) {
+  const classes = {
+    active: 'bg-green-100 text-green-800',
+    inactive: 'bg-red-100 text-red-800'
+  }
+  return `px-2 py-1 text-xs font-medium rounded-full ${classes[status] || ''}`
 }
 
-// Estilo do status
-function getStatusClass(status) {
-  return status === 'active'
-    ? 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800'
-    : 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800'
+function getCategoryName(categoryId) {
+  const category = categories.value.find(category => category.id === categoryId)
+  return category ? category.name : ''
 }
 </script>

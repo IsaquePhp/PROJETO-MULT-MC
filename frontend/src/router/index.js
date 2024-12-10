@@ -9,7 +9,6 @@ import Dashboard from '../views/Dashboard.vue'
 import Customers from '../views/Customers.vue'
 import Categories from '../views/Categories.vue'
 import Clients from '../views/Clients.vue'
-import Products from '../views/Products.vue'
 import Orders from '../views/Orders.vue'
 import Sales from '../views/Sales.vue'
 import Inventory from '../views/Inventory.vue'
@@ -21,6 +20,7 @@ import CentroCustos from '../views/Financial/CentroCustos.vue'
 import Lancamentos from '../views/Financial/Lancamentos.vue'
 import Budgets from '../views/Budgets.vue'
 import Reports from '../views/Reports.vue'
+import Products from '../views/Products.vue'
 
 const routes = [
   {
@@ -67,12 +67,6 @@ const routes = [
     path: '/clients',
     name: 'Clients',
     component: Clients,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/products',
-    name: 'Products',
-    component: Products,
     meta: { requiresAuth: true }
   },
   {
@@ -148,6 +142,12 @@ const routes = [
     path: '/reports',
     name: 'Reports',
     component: Reports,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/products',
+    name: 'Products',
+    component: () => import('../views/Products.vue'),
     meta: { requiresAuth: true }
   }
 ]
