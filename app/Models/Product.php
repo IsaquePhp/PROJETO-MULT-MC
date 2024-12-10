@@ -4,44 +4,30 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
         'description',
         'sku',
-        'barcode',
         'price',
         'cost_price',
         'stock',
         'min_stock',
-        'category',
-        'brand',
         'unit',
-        'status',
-        'magalu_id',
-        'magalu_sku',
-        'image_url',
-        'weight',
-        'height',
-        'width',
-        'length',
-        'last_sync_at'
+        'category_id',
+        'status'
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'cost_price' => 'decimal:2',
+        'price' => 'float',
+        'cost_price' => 'float',
         'stock' => 'integer',
-        'min_stock' => 'integer',
-        'weight' => 'decimal:3',
-        'height' => 'decimal:2',
-        'width' => 'decimal:2',
-        'length' => 'decimal:2',
-        'last_sync_at' => 'datetime'
+        'min_stock' => 'integer'
     ];
 
     // Status constants
@@ -108,5 +94,10 @@ class Product extends Model
                 $query->where('status', Sale::STATUS_COMPLETED);
             })
             ->sum('quantity');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 }

@@ -24,12 +24,12 @@ class ProductController extends Controller
         }
 
         // Filtro por categoria
-        if ($request->category && $request->category !== 'Todas') {
-            $query->where('category', $request->category);
+        if ($request->category_id) {
+            $query->where('category_id', $request->category_id);
         }
 
         // Filtro por status
-        if ($request->status && $request->status !== 'Todos') {
+        if ($request->status) {
             $query->where('status', $request->status);
         }
 
@@ -48,35 +48,23 @@ class ProductController extends Controller
             }
         }
 
-        // Ordenar por ID decrescente (últimos cadastrados primeiro)
-        $query->orderBy('id', 'desc');
-
-        $products = $query->get();
-
+        $products = $query->with('category')->orderBy('id', 'desc')->get();
+        
         return response()->json($products);
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|min:3|max:100',
-            'description' => 'nullable|string|max:500',
-            'sku' => 'required|string|unique:products|regex:/^[A-Za-z0-9-]+$/',
+            'name' => 'required|string|max:255',
+            'sku' => 'required|string|unique:products,sku',
+            'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'cost_price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'min_stock' => [
-                'required',
-                'integer',
-                'min:0',
-                function ($attribute, $value, $fail) use ($request) {
-                    if ($value > $request->stock) {
-                        $fail('O estoque mínimo não pode ser maior que o estoque atual.');
-                    }
-                },
-            ],
-            'category' => 'required|string|max:100',
-            'unit' => 'required|string|max:10',
+            'min_stock' => 'required|integer|min:0',
+            'unit' => 'required|string',
+            'category_id' => 'required|exists:categories,id',
             'status' => 'required|in:active,inactive'
         ]);
 
@@ -84,19 +72,8 @@ class ProductController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        try {
-            $product = Product::create($request->all());
-
-            return response()->json([
-                'message' => 'Produto criado com sucesso',
-                'product' => $product
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Erro ao criar produto',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        $product = Product::create($request->all());
+        return response()->json($product, 201);
     }
 
     public function show(Product $product)
@@ -107,52 +84,24 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|min:3|max:100',
-            'description' => 'nullable|string|max:500',
-            'sku' => [
-                'sometimes',
-                'required',
-                'string',
-                Rule::unique('products')->ignore($product->id),
-                'regex:/^[A-Za-z0-9-]+$/'
-            ],
-            'price' => 'sometimes|required|numeric|min:0',
-            'cost_price' => 'sometimes|required|numeric|min:0',
-            'stock' => 'sometimes|required|integer|min:0',
-            'min_stock' => [
-                'sometimes',
-                'required',
-                'integer',
-                'min:0',
-                function ($attribute, $value, $fail) use ($request, $product) {
-                    $stock = $request->has('stock') ? $request->stock : $product->stock;
-                    if ($value > $stock) {
-                        $fail('O estoque mínimo não pode ser maior que o estoque atual.');
-                    }
-                },
-            ],
-            'category' => 'sometimes|required|string|max:100',
-            'unit' => 'sometimes|required|string|max:10',
-            'status' => 'sometimes|required|in:active,inactive'
+            'name' => 'required|string|max:255',
+            'sku' => ['required', 'string', Rule::unique('products')->ignore($product->id)],
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'cost_price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'min_stock' => 'required|integer|min:0',
+            'unit' => 'required|string',
+            'category_id' => 'required|exists:categories,id',
+            'status' => 'required|in:active,inactive'
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        try {
-            $product->update($request->all());
-
-            return response()->json([
-                'message' => 'Produto atualizado com sucesso',
-                'product' => $product
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Erro ao atualizar produto',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        $product->update($request->all());
+        return response()->json($product);
     }
 
     public function destroy(Product $product)
@@ -212,5 +161,21 @@ class ProductController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function toggleStatus(Product $product)
+    {
+        $product->status = $product->status === Product::STATUS_ACTIVE 
+            ? Product::STATUS_INACTIVE 
+            : Product::STATUS_ACTIVE;
+        
+        $product->save();
+
+        return response()->json([
+            'message' => $product->status === Product::STATUS_ACTIVE 
+                ? 'Produto ativado com sucesso.' 
+                : 'Produto inativado com sucesso.',
+            'status' => $product->status
+        ]);
     }
 }
