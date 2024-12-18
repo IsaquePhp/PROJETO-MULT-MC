@@ -53,11 +53,13 @@ class SaleController extends Controller
      */
     public function store(Request $request)
     {
+        \Log::info('Recebendo requisição de venda:', $request->all());
+        
         $validator = Validator::make($request->all(), [
             'customer_id' => 'required|exists:customers,id',
-            'store_id' => 'nullable|exists:stores,id',
+            'store_id' => 'required|exists:stores,id',
             'payment_method' => 'required|string|in:cash,credit_card,debit_card,pix',
-            'installments' => 'nullable|integer|min:1|max:12',
+            'installments' => 'required|integer|min:1|max:12',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -67,6 +69,7 @@ class SaleController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Log::error('Validação falhou:', $validator->errors()->toArray());
             return response()->json([
                 'success' => false,
                 'message' => 'Dados inválidos',
@@ -78,15 +81,11 @@ class SaleController extends Controller
         try {
             // Buscar o cliente
             $customer = Customer::findOrFail($request->customer_id);
+            \Log::info('Cliente encontrado:', $customer->toArray());
             
-            // Buscar ou criar a loja
-            $store = $request->store_id ? Store::findOrFail($request->store_id) : Store::first();
-            if (!$store) {
-                $store = Store::create([
-                    'name' => 'Loja Padrão',
-                    'is_matrix' => true
-                ]);
-            }
+            // Buscar a loja
+            $store = Store::findOrFail($request->store_id);
+            \Log::info('Loja encontrada:', $store->toArray());
 
             // Criar a venda
             $sale = Sale::create([
@@ -96,18 +95,24 @@ class SaleController extends Controller
                 'customer_name' => $customer->name,
                 'customer_document' => $customer->cpf_cnpj,
                 'payment_method' => $request->payment_method,
-                'installments' => $request->installments ?? 1,
+                'installments' => $request->installments,
                 'payment_status' => 'pending',
                 'sale_status' => 'pending',
                 'notes' => $request->notes,
-                'user_id' => auth()->check() ? auth()->id() : null // Only set user_id if authenticated
+                'user_id' => null // Usuário não é obrigatório
             ]);
+
+            \Log::info('Venda criada:', $sale->toArray());
 
             $total = 0;
 
             // Adicionar itens à venda
             foreach ($request->items as $item) {
                 $product = Product::findOrFail($item['product_id']);
+                \Log::info('Processando produto:', [
+                    'product' => $product->toArray(),
+                    'item' => $item
+                ]);
                 
                 // Verificar estoque
                 if ($product->stock < $item['quantity']) {
@@ -123,21 +128,28 @@ class SaleController extends Controller
                 }
 
                 // Adicionar item
-                $sale->items()->create([
+                $saleItem = $sale->items()->create([
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'total' => $itemTotal
                 ]);
 
+                \Log::info('Item adicionado:', $saleItem->toArray());
+
                 // Atualizar estoque
                 $product->decrement('stock', $item['quantity']);
+                \Log::info('Estoque atualizado:', [
+                    'product_id' => $product->id,
+                    'new_stock' => $product->stock
+                ]);
 
                 $total += $itemTotal;
             }
 
             // Atualizar total da venda
             $sale->update(['total' => $total]);
+            \Log::info('Total da venda atualizado:', ['total' => $total]);
 
             // Se for pagamento em dinheiro ou débito, já marca como pago
             if (in_array($request->payment_method, ['cash', 'debit_card', 'pix'])) {
@@ -146,22 +158,32 @@ class SaleController extends Controller
                     'sale_status' => 'completed',
                     'paid_at' => now()
                 ]);
+                \Log::info('Venda marcada como paga');
             }
 
             DB::commit();
+            \Log::info('Venda finalizada com sucesso');
+
+            // Carregar os relacionamentos
+            $sale->load(['items.product', 'customer', 'store']);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Venda realizada com sucesso',
-                'data' => $sale->load('items.product')
+                'data' => $sale
             ]);
 
         } catch (\Exception $e) {
             DB::rollback();
+            \Log::error('Erro ao processar venda:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage()
-            ], 400);
+            ], 500);
         }
     }
 

@@ -177,22 +177,19 @@ class CustomerController extends Controller
 
     public function search(Request $request)
     {
-        $query = $request->get('query');
+        $search = $request->search;
         
-        if (empty($query)) {
-            return response()->json([
-                'data' => []
-            ]);
+        if (empty($search) || strlen($search) < 2) {
+            return response()->json(['data' => []]);
         }
 
-        $customers = Customer::where('name', 'like', "%{$query}%")
-            ->orWhere('email', 'like', "%{$query}%")
-            ->orWhere('cpf_cnpj', 'like', "%{$query}%")
+        $customers = Customer::where('name', 'like', "%{$search}%")
+            ->orWhere('email', 'like', "%{$search}%")
+            ->orWhere('cpf_cnpj', 'like', "%{$search}%")
+            ->orWhere('phone', 'like', "%{$search}%")
             ->limit(10)
             ->get();
 
-        return response()->json([
-            'data' => $customers
-        ]);
+        return response()->json(['data' => $customers]);
     }
 }

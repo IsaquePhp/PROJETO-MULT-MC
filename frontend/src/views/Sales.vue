@@ -10,7 +10,7 @@
         <div class="mb-4">
           <input
             type="text"
-            v-model="productSearch"
+            v-model="searchTerm"
             @input="searchProducts"
             placeholder="Buscar produtos..."
             class="w-full p-2 border rounded-lg"
@@ -84,50 +84,65 @@
 
         <!-- Cart Items -->
         <div v-else class="space-y-4">
-          <div
-            v-for="(item, index) in cart"
-            :key="item.id"
-            class="border-b pb-4 last:border-b-0"
-          >
-            <div class="flex justify-between items-start mb-2">
-              <div>
-                <div class="font-medium">{{ item.name }}</div>
-                <div class="text-sm text-gray-600">R$ {{ formatPrice(item.price) }}</div>
-              </div>
-              <div class="flex items-center space-x-2">
-                <button @click="updateQuantity(index, -1)" 
-                  class="text-gray-500 hover:text-gray-700">
-                  -
-                </button>
-                <span class="text-gray-700">{{ item.quantity }}</span>
-                <button @click="updateQuantity(index, 1)"
-                  class="text-gray-500 hover:text-gray-700">
-                  +
-                </button>
-                <button @click="removeFromCart(index)"
-                  class="text-red-500 hover:text-red-700 ml-2">
-                  Remover
-                </button>
-              </div>
-            </div>
-            <div class="text-right text-sm text-gray-600">
-              Subtotal: R$ {{ formatPrice(item.price * item.quantity) }}
-            </div>
-          </div>
-
-          <!-- Total -->
-          <div class="border-t pt-4">
-            <div class="flex justify-between items-center font-bold">
-              <span>Total:</span>
-              <span>R$ {{ formatPrice(cartTotal) }}</span>
-            </div>
-          </div>
+          <table class="min-w-full">
+            <thead>
+              <tr>
+                <th class="py-2">#</th>
+                <th class="py-2">Produto</th>
+                <th class="py-2 text-center">Qtd</th>
+                <th class="py-2 text-right">Preço</th>
+                <th class="py-2 text-right">Total</th>
+                <th class="py-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in cart" :key="item.id">
+                <td class="py-2">{{ index + 1 }}</td>
+                <td class="py-2">{{ item.name }}</td>
+                <td class="py-2 text-center">
+                  <div class="flex items-center justify-center gap-2">
+                    <button 
+                      @click="decreaseQuantity(item)"
+                      class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                    >
+                      <i class="fas fa-minus"></i>
+                    </button>
+                    {{ item.quantity }}
+                    <button 
+                      @click="increaseQuantity(item)"
+                      class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                    >
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                </td>
+                <td class="py-2 text-right">{{ formatCurrency(item.price) }}</td>
+                <td class="py-2 text-right">{{ formatCurrency(item.price * item.quantity) }}</td>
+                <td class="py-2 text-right">
+                  <button 
+                    @click="removeFromCart(item)" 
+                    class="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-100"
+                    title="Remover item"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="py-2 text-right font-bold">Total:</td>
+                <td class="py-2 text-right font-bold">{{ formatCurrency(cartTotal) }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
 
           <!-- Finish Sale Button -->
           <button
             @click="openFinalizationModal"
             :disabled="cart.length === 0"
-            class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
           >
             Finalizar Venda
           </button>
@@ -136,13 +151,16 @@
     </div>
 
     <!-- Modal de Finalização -->
-    <div v-if="showFinalizationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div v-show="showFinalizationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg w-full max-w-md mx-4">
         <div class="p-6">
-          <h2 class="text-xl font-bold mb-4">Selecionar Cliente</h2>
-          
+          <h2 class="text-xl font-bold mb-4">Finalizar Venda</h2>
+
           <!-- Busca de Cliente -->
           <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Cliente
+            </label>
             <input
               type="text"
               v-model="customerSearch"
@@ -150,12 +168,6 @@
               placeholder="Digite o nome do cliente..."
               class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
-            <p class="text-sm text-gray-500 mt-1">Digite pelo menos 2 caracteres para buscar</p>
-          </div>
-
-          <!-- Loading -->
-          <div v-if="loading" class="text-center py-4">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
           </div>
 
           <!-- Lista de Clientes -->
@@ -167,44 +179,26 @@
               class="p-3 hover:bg-indigo-50 cursor-pointer transition-colors"
             >
               <div class="font-medium">{{ customer.name }}</div>
-              <div class="text-sm text-gray-500">
-                {{ customer.phone || customer.document || 'Sem contato' }}
-              </div>
+              <div class="text-sm text-gray-500">{{ customer.phone || 'Sem telefone' }}</div>
             </div>
-          </div>
-
-          <!-- Nenhum Resultado -->
-          <div v-if="customerSearch.length >= 2 && filteredCustomers.length === 0 && !loading" class="text-center py-4 text-gray-500">
-            Nenhum cliente encontrado
-          </div>
-
-          <!-- Debug Info -->
-          <div v-if="customerSearch.length >= 2" class="text-xs text-gray-500 mt-2">
-            Status da busca: {{ loading ? 'Buscando...' : 'Concluído' }}
-            <br>
-            Resultados encontrados: {{ filteredCustomers.length }}
           </div>
 
           <!-- Cliente Selecionado -->
-          <div v-if="selectedCustomer" class="mb-6 bg-green-50 p-4 rounded-lg border border-green-200">
-            <div class="font-medium text-green-800">Cliente Selecionado</div>
-            <div class="text-green-700">{{ selectedCustomer.name }}</div>
-            <div class="text-sm text-green-600">
-              {{ selectedCustomer.phone || selectedCustomer.document || 'Sem contato' }}
-            </div>
+          <div v-if="selectedCustomer" class="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+            <div class="font-medium">Cliente Selecionado:</div>
+            <div>{{ selectedCustomer.name }}</div>
+            <div class="text-sm text-gray-600">{{ selectedCustomer.phone || 'Sem telefone' }}</div>
           </div>
 
           <!-- Forma de Pagamento -->
-          <div class="mb-6">
+          <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-2">
               Forma de Pagamento
             </label>
             <select 
-              v-model="paymentMethod" 
-              class="w-full p-3 border rounded-lg bg-white"
-              :class="{'border-red-300': !paymentMethod && selectedCustomer}"
+              v-model="selectedPaymentMethod"
+              class="w-full p-3 border rounded-lg"
             >
-              <option value="">Selecione uma forma de pagamento</option>
               <option value="cash">Dinheiro</option>
               <option value="credit_card">Cartão de Crédito</option>
               <option value="debit_card">Cartão de Débito</option>
@@ -213,7 +207,7 @@
           </div>
 
           <!-- Botões -->
-          <div class="flex justify-end gap-3">
+          <div class="flex justify-end gap-3 mt-6">
             <button
               @click="closeFinalizationModal"
               class="px-4 py-2 text-gray-600 hover:text-gray-800"
@@ -221,12 +215,73 @@
               Cancelar
             </button>
             <button
-              @click="confirmSale"
-              :disabled="!selectedCustomer || !paymentMethod || loading"
+              @click="handleConfirmSale"
+              :disabled="!selectedCustomer || !selectedPaymentMethod"
               class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ loading ? 'Processando...' : 'Confirmar Venda' }}
+              Confirmar Venda
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Detalhes do Pedido -->
+    <div v-if="showSaleDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg w-full max-w-2xl mx-4 modal-print-area">
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold">Detalhes do Pedido #{{ saleDetails.code }}</h2>
+            <div class="flex gap-2">
+              <button 
+                @click="printSale" 
+                class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700"
+              >
+                Imprimir
+              </button>
+              <button 
+                @click="showSaleDetailsModal = false" 
+                class="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-x-12 mb-6">
+            <div>
+              <p class="mb-2"><strong>Data:</strong> {{ formatDate(saleDetails.created_at) }}</p>
+              <p><strong>Status:</strong> {{ saleDetails.sale_status }}</p>
+            </div>
+            <div>
+              <p class="mb-2"><strong>Cliente:</strong> {{ saleDetails.customer_name }}</p>
+              <p><strong>Método:</strong> {{ saleDetails.payment_method }}</p>
+            </div>
+          </div>
+
+          <table class="w-full mb-6">
+            <thead>
+              <tr class="border-b">
+                <th class="text-left py-2">#</th>
+                <th class="text-left py-2">PRODUTO</th>
+                <th class="text-center py-2">QUANTIDADE</th>
+                <th class="text-right py-2">PREÇO UNIT.</th>
+                <th class="text-right py-2">TOTAL</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in saleDetails.items" :key="item.id" class="border-b">
+                <td class="py-3">{{ index + 1 }}</td>
+                <td class="py-3">{{ item.product.name }}</td>
+                <td class="text-center py-3">{{ item.quantity }}</td>
+                <td class="text-right py-3">R$ {{ formatPrice(item.unit_price) }}</td>
+                <td class="text-right py-3">R$ {{ formatPrice(item.total) }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="text-right">
+            <p class="text-lg font-bold">Total: R$ {{ formatPrice(saleDetails.total) }}</p>
           </div>
         </div>
       </div>
@@ -237,152 +292,86 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import axios from '../plugins/axios'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { useToast } from 'vue-toastification'
 
 export default {
-  name: 'Sales',
-  
   setup() {
-    // Estado
-    const sales = ref([])
+    const toast = useToast()
     const loading = ref(false)
     const error = ref(null)
-    const searchQuery = ref('')
-    const pagination = ref({
-      current_page: 1,
-      total: 0,
-      per_page: 10
-    })
-
-    const productSearch = ref('')
+    const products = ref([])
     const filteredProducts = ref([])
     const cart = ref([])
-
-    const customers = ref([])
+    const searchTerm = ref('')
     const customerSearch = ref('')
     const filteredCustomers = ref([])
     const selectedCustomer = ref(null)
-    const paymentMethod = ref('')
+    const selectedPaymentMethod = ref('cash')
+    const installments = ref(1)
+    const notes = ref('')
+    const store_id = ref(1)
+    const showSaleDetailsModal = ref(false)
+    const saleDetails = ref({})
     const showFinalizationModal = ref(false)
-    const showCustomerResults = ref(false)
-    
-    // Novo estado para o resumo do pedido
-    const showOrderSummary = ref(false)
-    const currentOrder = ref(null)
 
-    // Computed
-    const filteredSales = computed(() => {
-      if (!searchQuery.value) return sales.value
-      
-      const search = searchQuery.value.toLowerCase()
-      return sales.value.filter(sale => 
-        sale.code.toLowerCase().includes(search) ||
-        sale.customer?.name.toLowerCase().includes(search)
+    // Computed para calcular o total do carrinho
+    const cartTotal = computed(() => {
+      return cart.value.reduce((total, item) => total + (item.price * item.quantity), 0)
+    })
+
+    // Buscar produtos ao montar o componente
+    onMounted(async () => {
+      try {
+        loading.value = true
+        const response = await axios.get('http://127.0.0.1:8000/api/products')
+        if (response.data && response.data.data) {
+          products.value = response.data.data
+          filteredProducts.value = response.data.data
+        } else if (Array.isArray(response.data)) {
+          products.value = response.data
+          filteredProducts.value = response.data
+        } else {
+          throw new Error('Formato de dados inválido')
+        }
+      } catch (err) {
+        console.error('Erro ao carregar produtos:', err)
+        error.value = 'Erro ao carregar produtos'
+        toast.error('Erro ao carregar produtos. Por favor, tente novamente.')
+      } finally {
+        loading.value = false
+      }
+    })
+
+    // Computed Properties
+    const filteredProductsComputed = computed(() => {
+      if (!searchTerm.value) return products.value
+      const search = searchTerm.value.toLowerCase()
+      return products.value.filter(product => 
+        product.name.toLowerCase().includes(search)
       )
     })
 
-    const cartTotal = computed(() => {
-      return cart.value.reduce((total, item) => {
-        return total + (item.price * item.quantity)
-      }, 0)
-    })
-
-    // Métodos
-    function formatDateTime(dateString) {
-      if (!dateString) return ''
-      return new Date(dateString).toLocaleString('pt-BR')
-    }
-
-    function formatPrice(value) {
-      return Number(value).toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      })
-    }
-
-    async function loadSales(page = 1) {
-      loading.value = true
-      error.value = null
-      
+    // Methods
+    const searchProducts = () => {
       try {
-        const response = await axios.get('/sales', {
-          params: {
-            page,
-            per_page: pagination.value.per_page
-          }
-        })
-
-        if (response.data.success) {
-          const paginatedData = response.data.data
-          sales.value = paginatedData.data || []
-          pagination.value = {
-            current_page: paginatedData.current_page || 1,
-            total: paginatedData.total || 0,
-            per_page: paginatedData.per_page || 10
-          }
-        } else {
-          sales.value = []
-          error.value = 'Erro ao carregar vendas'
+        if (!searchTerm.value.trim()) {
+          filteredProducts.value = products.value
+          return
         }
+        const search = searchTerm.value.toLowerCase().trim()
+        filteredProducts.value = products.value.filter(product => 
+          product.name.toLowerCase().includes(search)
+        )
       } catch (err) {
-        error.value = err.message || 'Erro ao carregar vendas'
-        sales.value = []
-      } finally {
-        loading.value = false
+        console.error('Erro ao filtrar produtos:', err)
+        toast.error('Erro ao filtrar produtos')
       }
     }
 
-    async function loadCustomers() {
-      try {
-        const response = await axios.get('/customers')
-        if (response.data.success) {
-          customers.value = response.data.data
-        }
-      } catch (err) {
-        console.error('Erro ao carregar clientes:', err)
-      }
-    }
-
-    async function searchProducts() {
-      try {
-        loading.value = true
-        
-        console.log('Buscando produtos...')
-        
-        const response = await axios.get('/products', {
-          params: {
-            search: productSearch.value,
-            stock: 'in'
-          }
-        })
-        
-        console.log('Resposta da API:', response.data)
-        
-        if (response.data && response.data.data) {
-          // Mapear os produtos da resposta da API
-          filteredProducts.value = response.data.data.map(product => ({
-            id: product.id,
-            name: product.name,
-            price: parseFloat(product.price || 0),
-            stock: parseInt(product.stock || 0),
-            image: product.image_url
-          }))
-          
-          console.log('Produtos filtrados:', filteredProducts.value)
-        } else {
-          filteredProducts.value = []
-          console.error('Formato de resposta inválido:', response.data)
-        }
-      } catch (error) {
-        console.error('Erro ao buscar produtos:', error)
-        filteredProducts.value = []
-      } finally {
-        loading.value = false
-      }
-    }
-
-    function addToCart(product) {
+    const addToCart = (product) => {
       const existingItem = cart.value.find(item => item.id === product.id)
-      
       if (existingItem) {
         existingItem.quantity++
       } else {
@@ -395,214 +384,201 @@ export default {
       }
     }
 
-    function updateQuantity(index, change) {
-      const item = cart.value[index]
-      const newQuantity = item.quantity + change
-
-      if (newQuantity > 0) {
-        item.quantity = newQuantity
-      } else {
-        removeFromCart(index)
-      }
-    }
-
-    function removeFromCart(index) {
+    const removeFromCart = (item) => {
+      const index = cart.value.findIndex(cartItem => cartItem.id === item.id)
       cart.value.splice(index, 1)
     }
 
-    async function finalizeSale() {
-      if (cart.value.length === 0) return
-
-      try {
-        // Implementar lógica de finalização da venda
-        console.log('Finalizando venda:', {
-          items: cart.value,
-          total: cartTotal.value
-        })
-
-        // Limpar carrinho após venda
-        cart.value = []
-      } catch (error) {
-        console.error('Erro ao finalizar venda:', error)
-      }
-    }
-
-    function openFinalizationModal() {
-      showFinalizationModal.value = true
-    }
-
-    function closeFinalizationModal() {
-      showFinalizationModal.value = false
-      selectedCustomer.value = null
-      paymentMethod.value = ''
-    }
-
-    async function searchCustomers() {
-      console.log('Iniciando busca de clientes:', customerSearch.value)
-      
-      if (customerSearch.value.length < 2) {
-        showCustomerResults.value = false
-        filteredCustomers.value = []
+    const openFinalizationModal = () => {
+      if (cart.value.length === 0) {
+        toast.error('Adicione produtos ao carrinho primeiro')
         return
       }
+      showFinalizationModal.value = true
+      customerSearch.value = ''
+      filteredCustomers.value = []
+      selectedCustomer.value = null
+      selectedPaymentMethod.value = 'cash'
+    }
 
+    const closeFinalizationModal = () => {
+      showFinalizationModal.value = false
+    }
+
+    const searchCustomers = async () => {
       try {
+        if (customerSearch.value.length < 2) {
+          filteredCustomers.value = []
+          return
+        }
+
         loading.value = true
-        showCustomerResults.value = true
-        
-        console.log('Fazendo requisição para /customers com busca:', customerSearch.value)
-        
-        const response = await axios.get('/customers', {
-          params: {
-            name: customerSearch.value // Alterado de 'search' para 'name' para corresponder à API
-          }
+        const response = await axios.get('http://127.0.0.1:8000/api/customers/search', {
+          params: { search: customerSearch.value }
         })
 
-        console.log('Resposta completa da API:', response)
-
         if (response.data && response.data.data) {
-          console.log('Clientes encontrados:', response.data.data)
           filteredCustomers.value = response.data.data
         } else {
-          console.log('Nenhum cliente encontrado na resposta')
           filteredCustomers.value = []
         }
       } catch (error) {
-        console.error('Erro detalhado ao buscar clientes:', error.response || error)
+        console.error('Erro ao buscar clientes:', error)
+        toast.error('Erro ao buscar clientes')
         filteredCustomers.value = []
       } finally {
         loading.value = false
       }
     }
 
-    function selectCustomer(customer) {
+    const selectCustomer = (customer) => {
       selectedCustomer.value = customer
-      customerSearch.value = customer.name
-      showCustomerResults.value = false
-      console.log('Cliente selecionado:', customer)
+      customerSearch.value = ''
+      filteredCustomers.value = []
     }
 
-    async function confirmSale() {
-      if (!selectedCustomer.value || !paymentMethod.value) {
+    const formatPrice = (value) => {
+      return Number(value).toFixed(2)
+    }
+
+    const formatCurrency = (value) => {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(value)
+    }
+
+    const formatDate = (date) => {
+      if (!date) return ''
+      return format(new Date(date), "dd/MM/yyyy, HH:mm", { locale: ptBR })
+    }
+
+    const showSaleDetails = (sale) => {
+      saleDetails.value = {
+        ...sale,
+        items: sale.items.map(item => ({
+          ...item,
+          total: item.quantity * item.unit_price
+        }))
+      }
+      showSaleDetailsModal.value = true
+    }
+
+    const closeSaleDetailsModal = () => {
+      showSaleDetailsModal.value = false
+    }
+
+    const printSale = () => {
+      window.print()
+    }
+
+    const handleConfirmSale = async () => {
+      if (!selectedCustomer.value) {
+        toast.error('Por favor, selecione um cliente')
+        return
+      }
+
+      if (!selectedPaymentMethod.value) {
+        toast.error('Por favor, selecione uma forma de pagamento')
         return
       }
 
       try {
         loading.value = true
-        
-        // Log para debug
-        console.log('Método de pagamento selecionado:', paymentMethod.value)
-        
-        // Formatar os dados no formato que a API espera
-        const formattedItems = cart.value.map(item => {
-          const unit_price = parseFloat(item.price).toFixed(2)
-          const total = parseFloat(item.price * item.quantity).toFixed(2)
-          
-          return {
-            product_id: item.id,
-            quantity: item.quantity,
-            unit_price: unit_price,
-            price: unit_price,
-            total: total,
-            subtotal: total
-          }
-        })
-
         const saleData = {
           customer_id: selectedCustomer.value.id,
-          payment_method: paymentMethod.value,
-          total_amount: parseFloat(cartTotal.value).toFixed(2),
-          items: formattedItems
+          payment_method: selectedPaymentMethod.value,
+          store_id: store_id.value,
+          installments: installments.value,
+          items: cart.value.map(item => ({
+            product_id: item.id,
+            quantity: item.quantity,
+            unit_price: item.price,
+            total: item.price * item.quantity
+          }))
         }
 
-        console.log('Dados completos da venda:', saleData)
-
-        const response = await axios.post('/sales', saleData)
+        const response = await axios.post('http://127.0.0.1:8000/api/sales', saleData)
 
         if (response.data.success) {
-          // Armazenar dados do pedido para exibição do resumo
-          currentOrder.value = {
-            id: response.data.data.id,
-            customer: selectedCustomer.value,
-            payment_method: paymentMethod.value,
-            items: cart.value,
-            total: cartTotal.value,
-            date: new Date().toLocaleString()
-          }
-          
-          // Esconder modal de finalização e mostrar resumo
-          showFinalizationModal.value = false
-          showOrderSummary.value = true
-          
-          // Limpar carrinho
+          toast.success('Venda realizada com sucesso!')
           cart.value = []
-          
-          // Recarregar produtos para atualizar estoque
-          await searchProducts()
+          closeFinalizationModal()
+          if (response.data.data) {
+            showSaleDetails(response.data.data)
+          }
         } else {
-          throw new Error(response.data.message || 'Erro ao finalizar venda')
+          throw new Error(response.data.message || 'Erro ao realizar venda')
         }
       } catch (error) {
-        console.error('Erro detalhado ao finalizar venda:', error.response?.data || error)
-        const errorMessage = error.response?.data?.message || 'Erro ao finalizar venda. Verifique os dados e tente novamente.'
-        const validationErrors = error.response?.data?.errors
-        
-        if (validationErrors) {
-          const errorMessages = Object.entries(validationErrors)
-            .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
-            .join('\n')
-          alert(`Erros de validação:\n${errorMessages}`)
-        } else {
-          alert(errorMessage)
-        }
+        console.error('Erro ao confirmar venda:', error)
+        toast.error(error.response?.data?.message || 'Erro ao processar venda')
       } finally {
         loading.value = false
       }
     }
 
-    // Lifecycle
-    onMounted(() => {
-      console.log('Componente montado, buscando produtos...')
-      searchProducts()
-    })
+    const decreaseQuantity = (item) => {
+      if (item.quantity > 1) {
+        item.quantity--
+      }
+    }
+
+    const increaseQuantity = (item) => {
+      item.quantity++
+    }
 
     return {
-      // Data
-      sales,
       loading,
       error,
-      searchQuery,
-      pagination,
-      filteredSales,
-      productSearch,
+      products,
       filteredProducts,
       cart,
-      customers,
+      cartTotal,
+      searchTerm,
       customerSearch,
       filteredCustomers,
       selectedCustomer,
-      paymentMethod,
+      selectedPaymentMethod,
+      installments,
+      notes,
+      store_id,
+      showSaleDetailsModal,
+      saleDetails,
       showFinalizationModal,
-      showCustomerResults,
-
-      // Computed
-      cartTotal,
-
-      // Funções
-      formatDateTime,
-      formatPrice,
-      loadSales,
       searchProducts,
       addToCart,
-      updateQuantity,
       removeFromCart,
-      finalizeSale,
+      formatPrice,
+      formatCurrency,
+      formatDate,
       openFinalizationModal,
       closeFinalizationModal,
       searchCustomers,
       selectCustomer,
-      confirmSale
+      handleConfirmSale,
+      decreaseQuantity,
+      increaseQuantity
     }
   }
 }
 </script>
+
+<style>
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .modal-print-area, .modal-print-area * {
+    visibility: visible;
+  }
+  .modal-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+</style>

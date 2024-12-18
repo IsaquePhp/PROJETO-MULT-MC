@@ -61,17 +61,6 @@
         </router-link>
 
         <router-link
-          to="/orders"
-          class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
-          :class="[$route.path === '/orders' ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white']"
-        >
-          <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          Pedidos
-        </router-link>
-
-        <router-link
           to="/sales"
           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
           :class="[$route.path === '/sales' ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white']"
