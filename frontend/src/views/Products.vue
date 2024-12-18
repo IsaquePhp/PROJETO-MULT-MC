@@ -10,20 +10,22 @@
         </div>
 
         <!-- Filtros -->
-        <div class="card mb-6">
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
-            <div>
+        <div class="card mb-6 p-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Campo de Busca -->
+            <div class="col-span-1 sm:col-span-2 lg:col-span-1">
               <label class="form-label">Buscar</label>
               <input 
                 type="text" 
                 v-model="filters.search" 
-                class="input-field" 
-                placeholder="Nome, SKU ou código"
+                class="input-field w-full" 
+                placeholder="Nome do produto"
               />
             </div>
+            <!-- Filtro de Categoria -->
             <div>
               <label class="form-label">Categoria</label>
-              <select v-model="filters.category_id" class="input-field">
+              <select v-model="filters.category_id" class="input-field w-full">
                 <option value="">Todas</option>
                 <option 
                   v-for="category in categories" 
@@ -34,99 +36,191 @@
                 </option>
               </select>
             </div>
+            <!-- Filtro de Status -->
             <div>
               <label class="form-label">Status</label>
-              <select v-model="filters.status" class="input-field">
+              <select v-model="filters.status" class="input-field w-full">
                 <option value="">Todos</option>
                 <option value="active">Ativo</option>
                 <option value="inactive">Inativo</option>
               </select>
             </div>
+            <!-- Filtro de Estoque -->
             <div>
               <label class="form-label">Estoque</label>
-              <select v-model="filters.stock" class="input-field">
+              <select v-model="filters.stock" class="input-field w-full">
                 <option value="">Todos</option>
-                <option value="low">Baixo</option>
-                <option value="normal">Normal</option>
-                <option value="high">Alto</option>
+                <option value="low">Estoque Baixo</option>
+                <option value="out">Sem Estoque</option>
+                <option value="in">Em Estoque</option>
               </select>
             </div>
+          </div>
+          <!-- Botão Limpar Filtros -->
+          <div v-if="hasActiveFilters" class="mt-4 flex justify-end">
+            <button 
+              @click="resetFilters" 
+              class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Limpar Filtros
+            </button>
           </div>
         </div>
 
         <!-- Lista de Produtos -->
-        <div class="card">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Produto
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  SKU
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Preço
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estoque
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="product in products" :key="product.id">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div>
-                      <div class="text-sm font-medium text-gray-900">
-                        {{ product.name }}
-                      </div>
-                      <div class="text-sm text-gray-500">
-                        {{ getCategoryName(product.category_id) }}
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ product.sku }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  R$ {{ product.price }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ product.stock }}</div>
-                  <div class="text-sm text-gray-500">
-                    Min: {{ product.min_stock }}
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span :class="getStatusClass(product.status)">
-                    {{ product.status }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button 
-                    @click="editProduct(product)" 
-                    class="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    Editar
-                  </button>
-                  <button 
-                    @click="deleteProduct(product.id)" 
-                    class="text-red-600 hover:text-red-900"
-                  >
-                    Excluir
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="card overflow-x-auto">
+          <div v-if="isLoading" class="flex justify-center items-center py-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+          <template v-else>
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Nome
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                    SKU
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    Categoria
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Preço
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                    Estoque
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr v-for="product in products" :key="product.id" class="hover:bg-gray-50">
+                  <td class="px-4 py-2 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
+                  </td>
+                  <td class="px-4 py-2 whitespace-nowrap hidden sm:table-cell">
+                    <div class="text-sm text-gray-500">{{ product.sku }}</div>
+                  </td>
+                  <td class="px-4 py-2 whitespace-nowrap hidden md:table-cell">
+                    <div class="text-sm text-gray-500">{{ getCategoryName(product.category_id) }}</div>
+                  </td>
+                  <td class="px-4 py-2 whitespace-nowrap text-right">
+                    <div class="text-sm text-gray-900">R$ {{ product.price.toFixed(2) }}</div>
+                  </td>
+                  <td class="px-4 py-2 whitespace-nowrap text-right hidden sm:table-cell">
+                    <div class="text-sm text-gray-500">{{ product.stock }}</div>
+                  </td>
+                  <td class="px-4 py-2 whitespace-nowrap text-center">
+                    <span :class="getStatusClass(product.status)">
+                      {{ product.status === 'active' ? 'Ativo' : 'Inativo' }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-2 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                    <button 
+                      @click="editProduct(product)"
+                      class="text-blue-600 hover:text-blue-900"
+                    >
+                      Editar
+                    </button>
+                    <button 
+                      @click="deleteProduct(product.id)"
+                      class="text-red-600 hover:text-red-900"
+                    >
+                      Excluir
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Paginação -->
+            <div v-if="pagination.total > 0" class="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+              <div class="flex-1 flex justify-between sm:hidden">
+                <button
+                  @click="changePage(pagination.current_page - 1)"
+                  :disabled="pagination.current_page === 1"
+                  class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Anterior
+                </button>
+                <button
+                  @click="changePage(pagination.current_page + 1)"
+                  :disabled="pagination.current_page === pagination.last_page"
+                  class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Próxima
+                </button>
+              </div>
+              <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-sm text-gray-700">
+                    Mostrando
+                    <span class="font-medium">{{ pagination.from }}</span>
+                    até
+                    <span class="font-medium">{{ pagination.to }}</span>
+                    de
+                    <span class="font-medium">{{ pagination.total }}</span>
+                    resultados
+                  </p>
+                </div>
+                <div>
+                  <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      @click="changePage(pagination.current_page - 1)"
+                      :disabled="pagination.current_page === 1"
+                      class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span class="sr-only">Anterior</span>
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                    
+                    <template v-for="page in paginationRange" :key="page">
+                      <button
+                        v-if="page !== '...'"
+                        @click="changePage(page)"
+                        :class="[
+                          page === pagination.current_page
+                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
+                          'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
+                        ]"
+                      >
+                        {{ page }}
+                      </button>
+                      <span
+                        v-else
+                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                      >
+                        ...
+                      </span>
+                    </template>
+
+                    <button
+                      @click="changePage(pagination.current_page + 1)"
+                      :disabled="pagination.current_page === pagination.last_page"
+                      class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span class="sr-only">Próxima</span>
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
     </main>
@@ -311,6 +405,18 @@
                     <span v-if="errors.category_id" class="text-red-500 text-sm">{{ errors.category_id }}</span>
                   </div>
 
+                  <div>
+                    <label class="form-label">Status *</label>
+                    <select 
+                      v-model="productForm.status" 
+                      class="input-field" 
+                      required
+                    >
+                      <option value="active">Ativo</option>
+                      <option value="inactive">Inativo</option>
+                    </select>
+                  </div>
+
                   <div class="flex justify-end space-x-4 mt-6">
                     <button 
                       type="button" 
@@ -356,7 +462,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import axios from '../plugins/axios'
 import { useToast } from '../composables/useToast'
 import {
@@ -373,6 +479,7 @@ const showAddModal = ref(false)
 const editingProduct = ref(null)
 const errors = ref({})
 const isSaving = ref(false)
+const isLoading = ref(false)
 const { showToast, toastMessage, showSuccessToast } = useToast()
 
 const defaultCategories = [
@@ -393,6 +500,12 @@ const filters = ref({
   status: '',
   stock: ''
 })
+
+// Observar mudanças nos filtros
+watch(filters, () => {
+  pagination.value.current_page = 1
+  loadProducts()
+}, { deep: true })
 
 const productForm = ref({
   name: '',
@@ -419,11 +532,72 @@ const isFormValid = computed(() => {
     Object.keys(errors.value).length === 0
 })
 
-onMounted(async () => {
-  await Promise.all([
-    loadProducts(),
-    loadCategories()
-  ])
+const hasActiveFilters = computed(() => {
+  return filters.value.search !== '' || 
+         filters.value.category_id !== '' || 
+         filters.value.status !== '' || 
+         filters.value.stock !== ''
+})
+
+const pagination = ref({
+  current_page: 1,
+  from: 0,
+  to: 0,
+  total: 0,
+  last_page: 1
+})
+
+const paginationRange = computed(() => {
+  const range = []
+  const maxVisiblePages = 7
+  const currentPage = pagination.value.current_page
+  const lastPage = pagination.value.last_page
+
+  if (lastPage <= maxVisiblePages) {
+    // Se tiver menos páginas que o máximo, mostra todas
+    for (let i = 1; i <= lastPage; i++) {
+      range.push(i)
+    }
+  } else {
+    // Sempre mostra a primeira página
+    range.push(1)
+
+    // Calcula o início e fim do range central
+    let start = Math.max(currentPage - 2, 2)
+    let end = Math.min(currentPage + 2, lastPage - 1)
+
+    // Ajusta se estiver muito próximo do início ou fim
+    if (currentPage <= 3) {
+      end = 5
+    } else if (currentPage >= lastPage - 2) {
+      start = lastPage - 4
+    }
+
+    // Adiciona ellipsis no início se necessário
+    if (start > 2) {
+      range.push('...')
+    }
+
+    // Adiciona as páginas do meio
+    for (let i = start; i <= end; i++) {
+      range.push(i)
+    }
+
+    // Adiciona ellipsis no final se necessário
+    if (end < lastPage - 1) {
+      range.push('...')
+    }
+
+    // Sempre mostra a última página
+    range.push(lastPage)
+  }
+
+  return range
+})
+
+onMounted(() => {
+  loadProducts()
+  loadCategories()
 })
 
 function formatCurrency(event, field) {
@@ -569,7 +743,8 @@ async function saveProduct() {
     if (error.response?.data?.errors) {
       errors.value = error.response.data.errors
     } else {
-      showToast('Erro ao salvar produto. Tente novamente.')
+      toastMessage.value = 'Erro ao salvar produto. Tente novamente.'
+      showToast.value = true
     }
   } finally {
     isSaving.value = false
@@ -577,14 +752,35 @@ async function saveProduct() {
 }
 
 async function loadProducts() {
+  isLoading.value = true
   try {
     const response = await axios.get('/products', {
-      params: filters.value
+      params: {
+        ...filters.value,
+        page: pagination.value.current_page
+      }
     })
-    products.value = response.data
+    products.value = response.data.data
+    pagination.value = {
+      current_page: response.data.current_page,
+      from: response.data.from,
+      to: response.data.to,
+      total: response.data.total,
+      last_page: response.data.last_page
+    }
   } catch (error) {
     console.error('Error loading products:', error)
-    showToast('Erro ao carregar produtos')
+    toastMessage.value = 'Erro ao carregar produtos'
+    showToast.value = true
+  } finally {
+    isLoading.value = false
+  }
+}
+
+function changePage(page) {
+  if (page >= 1 && page <= pagination.value.last_page) {
+    pagination.value.current_page = page
+    loadProducts()
   }
 }
 
@@ -600,7 +796,18 @@ async function loadCategories() {
 
 function editProduct(product) {
   editingProduct.value = product
-  productForm.value = { ...product }
+  productForm.value = {
+    name: product.name,
+    description: product.description || '',
+    sku: product.sku,
+    price: product.price.toString(),
+    cost_price: product.cost_price.toString(),
+    stock: product.stock.toString(),
+    min_stock: product.min_stock.toString(),
+    unit: product.unit,
+    category_id: product.category_id,
+    status: product.status || 'active'
+  }
   showAddModal.value = true
 }
 
@@ -626,5 +833,14 @@ function getStatusClass(status) {
 function getCategoryName(categoryId) {
   const category = categories.value.find(category => category.id === categoryId)
   return category ? category.name : ''
+}
+
+function resetFilters() {
+  filters.value = {
+    search: '',
+    category_id: '',
+    status: '',
+    stock: ''
+  }
 }
 </script>

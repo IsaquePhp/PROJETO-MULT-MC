@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
@@ -14,13 +15,9 @@ class ProductController extends Controller
     {
         $query = Product::query();
 
-        // Filtro por busca
+        // Filtro por busca (apenas nome)
         if ($request->search) {
-            $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', "%{$request->search}%")
-                  ->orWhere('sku', 'like', "%{$request->search}%")
-                  ->orWhere('barcode', 'like', "%{$request->search}%");
-            });
+            $query->where('name', 'like', "%{$request->search}%");
         }
 
         // Filtro por categoria
@@ -48,7 +45,10 @@ class ProductController extends Controller
             }
         }
 
-        $products = $query->with('category')->orderBy('id', 'desc')->get();
+        $products = $query->with('category')
+                         ->orderBy('created_at', 'desc')
+                         ->orderBy('id', 'desc')
+                         ->paginate(50);
         
         return response()->json($products);
     }
@@ -83,25 +83,35 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'sku' => ['required', 'string', Rule::unique('products')->ignore($product->id)],
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'cost_price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'min_stock' => 'required|integer|min:0',
-            'unit' => 'required|string',
-            'category_id' => 'required|exists:categories,id',
-            'status' => 'required|in:active,inactive'
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'sku' => ['required', 'string', Rule::unique('products')->ignore($product->id)],
+                'description' => 'nullable|string',
+                'price' => 'required|numeric|min:0',
+                'cost_price' => 'required|numeric|min:0',
+                'stock' => 'required|integer|min:0',
+                'min_stock' => 'required|integer|min:0',
+                'unit' => 'required|string',
+                'category_id' => 'required|exists:categories,id',
+                'status' => 'required|in:active,inactive'
+            ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $product->fill($request->all());
+            $product->save();
+
+            return response()->json($product->fresh());
+        } catch (\Exception $e) {
+            Log::error('Erro ao atualizar produto: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Erro ao atualizar produto',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $product->update($request->all());
-        return response()->json($product);
     }
 
     public function destroy(Product $product)

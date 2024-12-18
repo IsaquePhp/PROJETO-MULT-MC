@@ -12,24 +12,28 @@ class Sale extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'total_amount',
-        'channel',
-        'country',
+        'code',
         'customer_id',
-        'status',
-        'user_id',
         'store_id',
         'customer_name',
         'customer_document',
         'payment_method',
+        'installments',
         'payment_status',
         'sale_status',
-        'notes'
+        'total',
+        'notes',
+        'paid_at'
     ];
 
     protected $casts = [
-        'total_amount' => 'decimal:2'
+        'total' => 'decimal:2',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'paid_at' => 'datetime'
     ];
+
+    protected $with = ['items', 'customer'];
 
     /**
      * The attributes that should be cast to dates.
@@ -42,12 +46,23 @@ class Sale extends Model
         'deleted_at'
     ];
 
-    /**
-     * Get the user who made the sale.
-     */
-    public function user()
+    public static function boot()
     {
-        return $this->belongsTo(User::class);
+        parent::boot();
+        
+        static::creating(function ($sale) {
+            if (!$sale->code) {
+                $sale->code = 'SALE-' . strtoupper(uniqid());
+            }
+        });
+    }
+
+    /**
+     * Get the customer who made the sale.
+     */
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     /**
@@ -66,84 +81,40 @@ class Sale extends Model
         return $this->hasMany(SaleItem::class);
     }
 
-    /**
-     * Calculate the total amount for this sale.
-     */
-    public function calculateTotal()
+    public function addItem($product, $quantity, $unit_price)
     {
-        $total = $this->items->sum('total');
-        $this->total_amount = $total;
+        $total = $unit_price * $quantity;
+        
+        $item = $this->items()->create([
+            'product_id' => $product->id,
+            'quantity' => $quantity,
+            'price' => $unit_price,
+            'subtotal' => $total
+        ]);
+
+        $this->updateTotal();
+        
+        return $item;
+    }
+
+    public function updateTotal()
+    {
+        $total = $this->items()->sum('subtotal');
+        $this->update(['total' => $total]);
         return $total;
     }
 
-    /**
-     * Add an item to the sale.
-     */
-    public function addItem($product, $quantity, $unit_price = null, $discount = 0)
+    public function markAsPaid()
     {
-        DB::beginTransaction();
-        try {
-            $item = $this->items()->create([
-                'product_id' => $product->id,
-                'quantity' => $quantity,
-                'unit_price' => $unit_price ?? $product->price,
-                'discount' => $discount
-            ]);
-
-            $item->calculateTotal();
-            $item->save();
-            
-            // Update product stock
-            $item->updateProductStock();
-
-            $this->calculateTotal();
-            $this->save();
-
-            DB::commit();
-            return $item;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        return $this->update([
+            'status' => 'paid'
+        ]);
     }
 
-    /**
-     * Cancel the sale and restore stock.
-     */
-    public function cancel()
+    public function markAsCancelled()
     {
-        if ($this->sale_status === 'canceled') {
-            throw new \Exception('Sale is already canceled.');
-        }
-
-        DB::beginTransaction();
-        try {
-            // Restore stock for each item
-            foreach ($this->items as $item) {
-                $item->restoreProductStock();
-            }
-
-            $this->sale_status = 'canceled';
-            $this->save();
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-    }
-
-    /**
-     * Complete the sale.
-     */
-    public function complete()
-    {
-        if ($this->sale_status !== 'pending') {
-            throw new \Exception('Sale cannot be completed.');
-        }
-
-        $this->sale_status = 'completed';
-        $this->payment_status = 'paid';
-        $this->save();
+        return $this->update([
+            'status' => 'cancelled'
+        ]);
     }
 }

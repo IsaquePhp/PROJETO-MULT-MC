@@ -4,35 +4,61 @@ import router from '../router'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: null,
+    user: JSON.parse(localStorage.getItem('user')) || null,
     token: localStorage.getItem('token') || null,
-    loading: false
+    loading: false,
+    error: null
   }),
 
   getters: {
-    isAuthenticated: (state) => !!state.token,
-    getUser: (state) => state.user
+    isAuthenticated: (state) => !!state.token && !!state.user,
+    getUser: (state) => state.user,
+    getError: (state) => state.error
   },
 
   actions: {
+    async checkAuth() {
+      if (!this.token) {
+        return false
+      }
+
+      // Verificar se o token ainda é válido
+      try {
+        const response = await axios.get('/me')
+        this.user = response.data
+        return true
+      } catch (error) {
+        // Se o token for inválido, limpar o estado
+        if (error.response && error.response.status === 401) {
+          this.token = null
+          this.user = null
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+        }
+        return false
+      }
+    },
+
     async login(email, password) {
       this.loading = true
+      this.error = null
       try {
         const response = await axios.post('/login', { email, password })
-        const { token, user } = response.data
+        const { access_token, user } = response.data
 
-        this.token = token
+        this.token = access_token
         this.user = user
-        localStorage.setItem('token', token)
+        localStorage.setItem('token', access_token)
         localStorage.setItem('user', JSON.stringify(user))
-
-        // Configure axios headers
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
         await router.push('/dashboard')
         return true
       } catch (error) {
-        console.error('Login error:', error)
+        if (error.response) {
+          this.error = error.response.data.message
+        } else {
+          this.error = 'Erro ao fazer login'
+        }
         throw error
       } finally {
         this.loading = false
@@ -43,43 +69,31 @@ export const useAuthStore = defineStore('auth', {
       try {
         await axios.post('/logout')
       } catch (error) {
-        console.error('Logout error:', error)
+        console.error('Erro ao fazer logout:', error)
       } finally {
         this.token = null
         this.user = null
         localStorage.removeItem('token')
         localStorage.removeItem('user')
-        delete axios.defaults.headers.common['Authorization']
-        await router.push('/login')
+        router.push('/login')
       }
     },
 
-    async checkAuth() {
-      if (!this.token) {
-        await router.push('/login')
-        return false
-      }
-
-      try {
-        const response = await axios.get('/me')
-        this.user = response.data
-        return true
-      } catch (error) {
-        console.error('Auth check error:', error)
-        await this.logout()
-        return false
-      }
-    },
-
-    initializeAuth() {
+    async initializeAuth() {
       const token = localStorage.getItem('token')
       const user = localStorage.getItem('user')
-
+      
       if (token && user) {
         this.token = token
         this.user = JSON.parse(user)
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+        return this.checkAuth()
       }
+      
+      return false
+    },
+
+    clearError() {
+      this.error = null
     }
   }
 })

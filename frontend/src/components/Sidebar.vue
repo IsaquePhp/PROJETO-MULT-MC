@@ -1,300 +1,265 @@
 <template>
-  <aside class="h-screen w-64 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col">
-    <!-- Seção do Cabeçalho -->
-    <div class="border-b border-gray-200">
-      <!-- Logo -->
-      <div class="p-4">
-        <div class="flex items-center">
-          <h1 class="text-xl font-bold text-indigo-600">MC</h1>
-          <span class="ml-2 text-sm text-gray-600">Team Plan</span>
-        </div>
-      </div>
-
-      <!-- Seletor de Lojas -->
-      <div class="store-selector relative mx-3.5 mb-3.5">
-        <StoreSelector />
+  <aside class="h-screen w-64 flex-shrink-0 bg-[#4338CA] flex flex-col">
+    <!-- Logo e Team Plan -->
+    <div class="p-4 border-b border-white/10">
+      <div class="flex items-center justify-center">
+        <img src="../assets/Logo.png" alt="MC Logo" class="h-10" />
       </div>
     </div>
 
+    <!-- Store Selector -->
+    <div class="p-4">
+      <StoreSelector />
+    </div>
+
     <!-- Menu Principal -->
-    <nav class="flex-1 overflow-y-auto">
-      <div class="px-3 py-2">
-        <div class="space-y-1">
-          <!-- Menu Items -->
-          <router-link
-            to="/dashboard"
-            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
-            :class="[$route.path === '/dashboard' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
-          >
-            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-            Dashboard
-          </router-link>
+    <nav class="flex-1 overflow-y-auto px-3 py-2">
+      <div class="space-y-1">
+        <!-- Menu Items -->
+        <router-link
+          to="/dashboard"
+          class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
+          :class="[$route.path === '/dashboard' ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white']"
+        >
+          <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          Dashboard
+        </router-link>
 
-          <router-link
-            to="/customers"
-            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
-            :class="[$route.path === '/customers' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
-          >
-            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 00-3-3H4a3 3 0 013-3h10a3 3 0 013 3v10a3 3 0 01-3 3z" />
-            </svg>
-            Clientes
-          </router-link>
+        <router-link
+          to="/customers"
+          class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
+          :class="[$route.path === '/customers' ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white']"
+        >
+          <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 00-3-3H4a3 3 0 013-3h10a3 3 0 013 3v10a3 3 0 01-3 3z" />
+          </svg>
+          Clientes
+        </router-link>
 
-          <router-link
-            to="/categories"
-            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
-            :class="[$route.path === '/categories' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
-          >
-            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-            </svg>
-            Categorias
-          </router-link>
+        <router-link
+          to="/products"
+          class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
+          :class="[$route.path === '/products' ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white']"
+        >
+          <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          Produtos
+        </router-link>
 
-          <router-link
-            to="/orders"
-            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
-            :class="[$route.path === '/orders' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
-          >
-            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            Pedidos
-          </router-link>
+        <router-link
+          to="/categories"
+          class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
+          :class="[$route.path === '/categories' ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white']"
+        >
+          <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+          </svg>
+          Categorias
+        </router-link>
 
-          <router-link
-            to="/sales"
-            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
-            :class="[$route.path === '/sales' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
-          >
-            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2H9a2 2 0 00-2 2v14a2 2 0 01-2 2z" />
-            </svg>
-            Vendas
-          </router-link>
+        <router-link
+          to="/orders"
+          class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
+          :class="[$route.path === '/orders' ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white']"
+        >
+          <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          Pedidos
+        </router-link>
 
-          <router-link
-            to="/inventory"
-            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
-            :class="[$route.path === '/inventory' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
-          >
-            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-            </svg>
-            Estoque
-          </router-link>
+        <router-link
+          to="/sales"
+          class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
+          :class="[$route.path === '/sales' ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white']"
+        >
+          <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+          PDV
+        </router-link>
 
-          <router-link
-            to="/lancamentos"
-            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
-            :class="[$route.path === '/lancamentos' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
-          >
-            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            Lançamentos
-          </router-link>
+        <router-link
+          to="/sales-history"
+          class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
+          :class="[$route.path === '/sales-history' ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white']"
+        >
+          <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+          Histórico de Vendas
+        </router-link>
 
-          <router-link
-            to="/products"
-            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
-            :class="[$route.path === '/products' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
-          >
-            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14" />
-            </svg>
-            Produtos
-          </router-link>
+        <router-link
+          to="/inventory"
+          class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
+          :class="[$route.path === '/inventory' ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white']"
+        >
+          <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+          </svg>
+          Estoque
+        </router-link>
 
-          <!-- Menu Logística -->
-          <div class="relative">
-            <div class="flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 cursor-pointer"
-                 @click="toggleLogisticsMenu">
+        <router-link
+          to="/lancamentos"
+          class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
+          :class="[$route.path === '/lancamentos' ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white']"
+        >
+          <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          Lançamentos
+        </router-link>
+
+        <!-- Menu Logística -->
+        <div class="relative">
+          <div class="flex items-center px-3 py-2 text-sm font-medium rounded-lg text-white/80 hover:bg-white/5 hover:text-white cursor-pointer"
+               @click="toggleLogisticsMenu">
+            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+            </svg>
+            <span class="flex-1">Logística</span>
+            <svg 
+              class="ml-auto h-5 w-5 transform transition-transform duration-200"
+              :class="{ 'rotate-180': isLogisticsOpen }"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          
+          <!-- Submenu Logística -->
+          <div 
+            v-show="isLogisticsOpen"
+            class="mt-1"
+          >
+            <router-link
+              to="/logistics/entregas"
+              class="flex items-center pl-10 pr-3 py-2 text-sm font-medium text-white/80 hover:bg-white/5 hover:text-white"
+              :class="{ 'bg-white/10 text-white': $route.path === '/logistics/entregas' }"
+            >
               <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
               </svg>
-              <span class="flex-1">Logística</span>
-              <svg 
-                class="ml-auto h-5 w-5 transform transition-transform duration-200"
-                :class="{ 'rotate-180': isLogisticsOpen }"
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-            
-            <!-- Submenu Logística -->
-            <div 
-              v-show="isLogisticsOpen"
-              class="mt-1"
+              Entregas
+            </router-link>
+
+            <router-link
+              to="/logistics/devolucoes"
+              class="flex items-center pl-10 pr-3 py-2 text-sm font-medium text-white/80 hover:bg-white/5 hover:text-white"
+              :class="{ 'bg-white/10 text-white': $route.path === '/logistics/devolucoes' }"
             >
-              <router-link
-                to="/logistics/entregas"
-                class="flex items-center pl-10 pr-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
-                :class="{ 'bg-indigo-50 text-indigo-600': $route.path === '/logistics/entregas' }"
-              >
-                <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                </svg>
-                Entregas
-              </router-link>
-
-              <router-link
-                to="/logistics/devolucoes"
-                class="flex items-center pl-10 pr-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
-                :class="{ 'bg-indigo-50 text-indigo-600': $route.path === '/logistics/devolucoes' }"
-              >
-                <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21l-7-7 7-7" />
-                </svg>
-                Devoluções
-              </router-link>
-            </div>
-          </div>
-
-          <!-- Menu Financeiro -->
-          <div class="relative">
-            <div class="flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 cursor-pointer"
-                 @click="toggleFinancialMenu">
               <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21l-7-7 7-7" />
               </svg>
-              <span class="flex-1">Financeiro</span>
-              <svg 
-                class="ml-auto h-5 w-5 transform transition-transform duration-200"
-                :class="{ 'rotate-180': isFinancialOpen }"
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-            
-            <!-- Submenu Financeiro -->
-            <div 
-              v-show="isFinancialOpen"
-              class="mt-1"
-            >
-              <router-link
-                to="/financial/pagamentos"
-                class="flex items-center pl-10 pr-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
-                :class="{ 'bg-indigo-50 text-indigo-600': $route.path === '/financial/pagamentos' }"
-              >
-                <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Pagamentos
-              </router-link>
-
-              <router-link
-                to="/financial/fluxo-caixa"
-                class="flex items-center pl-10 pr-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
-                :class="{ 'bg-indigo-50 text-indigo-600': $route.path === '/financial/fluxo-caixa' }"
-              >
-                <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2H9a2 2 0 00-2 2v14a2 2 0 01-2 2z" />
-                </svg>
-                Fluxo de Caixa
-              </router-link>
-
-              <router-link
-                to="/financial/centro-custos"
-                class="flex items-center pl-10 pr-3 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
-                :class="{ 'bg-indigo-50 text-indigo-600': $route.path === '/financial/centro-custos' }"
-              >
-                <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Centro de Custos
-              </router-link>
-            </div>
+              Devoluções
+            </router-link>
           </div>
-
-          <router-link
-            to="/budgets"
-            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
-            :class="[$route.path === '/budgets' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
-          >
-            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-            Orçamentos
-          </router-link>
-
-          <router-link
-            to="/reports"
-            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
-            :class="[$route.path === '/reports' ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-100']"
-          >
-            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4V9m-6 4h-2m-6 4h-2m6-4h12a2 2 0 012 2v3m-7 4h3m-6 4h12a2 2 0 012 2v3" />
-            </svg>
-            Relatórios
-          </router-link>
         </div>
+
+        <!-- Menu Financeiro -->
+        <div class="relative">
+          <div class="flex items-center px-3 py-2 text-sm font-medium rounded-lg text-white/80 hover:bg-white/5 hover:text-white cursor-pointer"
+               @click="toggleFinancialMenu">
+            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="flex-1">Financeiro</span>
+            <svg 
+              class="ml-auto h-5 w-5 transform transition-transform duration-200"
+              :class="{ 'rotate-180': isFinancialOpen }"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          
+          <!-- Submenu Financeiro -->
+          <div 
+            v-show="isFinancialOpen"
+            class="mt-1"
+          >
+            <router-link
+              to="/financial/pagamentos"
+              class="flex items-center pl-10 pr-3 py-2 text-sm font-medium text-white/80 hover:bg-white/5 hover:text-white"
+              :class="{ 'bg-white/10 text-white': $route.path === '/financial/pagamentos' }"
+            >
+              <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Pagamentos
+            </router-link>
+
+            <router-link
+              to="/financial/fluxo-caixa"
+              class="flex items-center pl-10 pr-3 py-2 text-sm font-medium text-white/80 hover:bg-white/5 hover:text-white"
+              :class="{ 'bg-white/10 text-white': $route.path === '/financial/fluxo-caixa' }"
+            >
+              <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2H9a2 2 0 00-2 2v14a2 2 0 01-2 2z" />
+              </svg>
+              Fluxo de Caixa
+            </router-link>
+
+            <router-link
+              to="/financial/centro-custos"
+              class="flex items-center pl-10 pr-3 py-2 text-sm font-medium text-white/80 hover:bg-white/5 hover:text-white"
+              :class="{ 'bg-white/10 text-white': $route.path === '/financial/centro-custos' }"
+            >
+              <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Centro de Custos
+            </router-link>
+          </div>
+        </div>
+
+        <router-link
+          to="/budgets"
+          class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
+          :class="[$route.path === '/budgets' ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white']"
+        >
+          <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+          Orçamentos
+        </router-link>
+
+        <router-link
+          to="/reports"
+          class="flex items-center px-3 py-2 text-sm font-medium rounded-lg"
+          :class="[$route.path === '/reports' ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white']"
+        >
+          <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4V9m-6 4h-2m-6 4h-2m6-4h12a2 2 0 012 2v3m-7 4h3m-6 4h12a2 2 0 012 2v3" />
+          </svg>
+          Relatórios
+        </router-link>
       </div>
     </nav>
 
     <!-- Perfil do Usuário -->
-    <div class="relative mt-auto bg-white">
-      <div class="h-px bg-gray-100"></div>
-      <button 
-        @click="toggleProfileMenu"
-        class="profile-button w-full p-4 flex items-center bg-white"
-      >
+    <div class="p-4 border-t border-white/10">
+      <div class="flex items-center">
         <img
-          :src="'https://ui-avatars.com/api/?name=' + userName"
+          :src="'https://ui-avatars.com/api/?name=' + userName + '&background=fff&color=4338CA'"
           alt="User avatar"
-          class="w-8 h-8 rounded-full"
-        >
-        <div class="ml-3 flex-1 text-left">
-          <p class="text-sm font-medium text-gray-700">{{ userName }}</p>
-          <p class="text-xs text-gray-500">{{ userEmail }}</p>
-        </div>
-        <svg 
-          class="w-5 h-5 text-gray-400 transition-transform duration-200"
-          :class="{ 'transform rotate-180': isProfileOpen }"
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      <!-- Menu Flutuante -->
-      <div 
-        v-if="isProfileOpen"
-        class="profile-menu absolute bottom-full left-0 right-0 mx-4 mb-2 bg-white rounded-lg shadow-xl border border-gray-50 p-2"
-      >
-        <a href="#" class="flex items-center px-4 py-2.5 text-sm text-gray-700 rounded-md hover:bg-gray-100">
-          <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          Perfil
-        </a>
-        <a href="#" class="flex items-center px-4 py-2.5 text-sm text-gray-700 rounded-md hover:bg-gray-100">
-          <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0" />
-          </svg>
-          Configurações
-        </a>
-        <div class="h-px bg-gray-100 my-2"></div>
-        <button 
+          class="h-8 w-8 rounded-full"
+        />
+        <span class="ml-3 text-sm font-medium text-white">{{ userName }}</span>
+        <button
           @click="handleLogout"
-          class="w-full flex items-center px-4 py-2.5 text-sm text-red-600 rounded-md hover:bg-gray-100"
+          class="ml-auto text-sm text-white/60 hover:text-white"
         >
-          <svg class="mr-3 h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v6" />
-          </svg>
-          Logout
+          Sair
         </button>
       </div>
     </div>

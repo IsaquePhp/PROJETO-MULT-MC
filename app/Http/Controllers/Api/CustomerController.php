@@ -174,4 +174,25 @@ class CustomerController extends Controller
 
         return response()->json($payments);
     }
+
+    public function search(Request $request)
+    {
+        $query = $request->get('query');
+        
+        if (empty($query)) {
+            return response()->json([
+                'data' => []
+            ]);
+        }
+
+        $customers = Customer::where('name', 'like', "%{$query}%")
+            ->orWhere('email', 'like', "%{$query}%")
+            ->orWhere('cpf_cnpj', 'like', "%{$query}%")
+            ->limit(10)
+            ->get();
+
+        return response()->json([
+            'data' => $customers
+        ]);
+    }
 }

@@ -23,6 +23,21 @@ use App\Http\Controllers\Api\ClientController;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
+// Produtos (rotas públicas temporárias para teste)
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{product}', [ProductController::class, 'show']);
+
+// Clientes (rotas públicas temporárias para teste)
+Route::get('/customers/search', [CustomerController::class, 'search']);
+
+// Vendas (rotas públicas temporárias para teste)
+Route::get('/sales', [SaleController::class, 'index']);
+Route::post('/sales', [SaleController::class, 'store']);
+Route::get('/sales/{sale}', [SaleController::class, 'show']);
+Route::post('/sales/{sale}/complete', [SaleController::class, 'complete']);
+Route::post('/sales/{sale}/cancel', [SaleController::class, 'cancel']);
+Route::get('/sales/{sale}/pdf', [SaleController::class, 'generatePdf']);
+
 // Rotas protegidas
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -34,14 +49,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Produtos
     Route::prefix('products')->group(function () {
-        Route::get('/', [ProductController::class, 'index']);
         Route::post('/', [ProductController::class, 'store']);
-        Route::get('/{product}', [ProductController::class, 'show']);
         Route::put('/{product}', [ProductController::class, 'update']);
         Route::delete('/{product}', [ProductController::class, 'destroy']);
         Route::get('/check-sku/{sku}', [ProductController::class, 'checkSku']);
         Route::get('/categories', [ProductController::class, 'categories']);
         Route::put('/{product}/stock', [ProductController::class, 'updateStock']);
+        Route::put('/{product}/toggle-status', [ProductController::class, 'toggleStatus']);
 
         // Product Import Routes (Magalu)
         Route::prefix('magalu')->group(function () {
@@ -83,6 +97,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{payment}/register', [PaymentController::class, 'registerPayment']);
     });
 
+    // Lojas
+    Route::get('/stores/default', [StoreController::class, 'getDefault']);
+    Route::apiResource('stores', StoreController::class);
+
     // Usuários
     Route::prefix('users')->middleware('permission:manage-users')->group(function () {
         Route::get('/', [UserController::class, 'index']);
@@ -112,15 +130,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{company}', [CompanyController::class, 'show']);
         Route::put('/{company}', [CompanyController::class, 'update']);
         Route::delete('/{company}', [CompanyController::class, 'destroy']);
-    });
-
-    // Lojas
-    Route::prefix('stores')->middleware('permission:manage-stores')->group(function () {
-        Route::get('/', [StoreController::class, 'index']);
-        Route::post('/', [StoreController::class, 'store']);
-        Route::get('/{store}', [StoreController::class, 'show']);
-        Route::put('/{store}', [StoreController::class, 'update']);
-        Route::delete('/{store}', [StoreController::class, 'destroy']);
     });
 
     // Categorias

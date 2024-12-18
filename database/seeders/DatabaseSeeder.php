@@ -11,6 +11,12 @@ use Database\Seeders\CategorySeeder;
 use Database\Seeders\ClientSeeder;
 use Database\Seeders\AdditionalCustomersSeeder;
 use Database\Seeders\AdditionalProductsSeeder;
+use Database\Seeders\MaterialConstrucaoSeeder;
+use Database\Seeders\AdminCompanySeeder;
+use Database\Seeders\AdditionalClientsSeeder;
+use Database\Seeders\StoreSeeder;
+use Database\Seeders\CompanySeeder;
+use Database\Seeders\UserSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,14 +29,17 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolesAndPermissionsSeeder::class,
+            AdminCompanySeeder::class,
+            StoreSeeder::class,
             AdminUserSeeder::class,
-            ProductSeeder::class,
-            CustomerSeeder::class,
             CategorySeeder::class,
-            ClientSeeder::class,
-            AdditionalCustomersSeeder::class,
+            ProductSeeder::class,
+            MaterialConstrucaoSeeder::class,
             AdditionalProductsSeeder::class,
-            // Add other seeders here
+            CustomerSeeder::class,
+            AdditionalClientsSeeder::class,
+            CompanySeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

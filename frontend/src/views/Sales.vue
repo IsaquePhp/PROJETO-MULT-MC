@@ -1,257 +1,231 @@
 <template>
-  <div>
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div class="px-4 py-6 sm:px-0">
-        <div class="flex justify-between items-center mb-6">
-          <h1 class="text-2xl font-semibold text-gray-900">Vendas</h1>
-          <button @click="showNewSaleModal = true" class="btn-primary">
-            Nova Venda
-          </button>
+  <div class="container mx-auto p-4">
+    <!-- Grid de Produtos -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Coluna 1 e 2: Lista de Produtos -->
+      <div class="md:col-span-2 bg-white rounded-lg shadow p-4">
+        <h2 class="text-xl font-bold mb-4">Produtos</h2>
+
+        <!-- Busca -->
+        <div class="mb-4">
+          <input
+            type="text"
+            v-model="productSearch"
+            @input="searchProducts"
+            placeholder="Buscar produtos..."
+            class="w-full p-2 border rounded-lg"
+          />
         </div>
 
-        <!-- Filtros -->
-        <div class="card mb-6">
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
-            <div>
-              <label class="form-label">Período</label>
-              <select v-model="filters.period" class="input-field">
-                <option value="today">Hoje</option>
-                <option value="week">Última Semana</option>
-                <option value="month">Último Mês</option>
-                <option value="custom">Personalizado</option>
-              </select>
+        <!-- Loading State -->
+        <div v-if="loading" class="text-center py-8">
+          <p class="text-gray-600">Carregando produtos...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="text-center py-8">
+          <p class="text-red-600">{{ error }}</p>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else-if="filteredProducts.length === 0" class="text-center py-8">
+          <p class="text-gray-600">Nenhum produto encontrado</p>
+        </div>
+
+        <!-- Product Grid -->
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div
+            v-for="product in filteredProducts"
+            :key="product.id"
+            class="border rounded-lg p-4 relative hover:shadow-lg transition-shadow"
+          >
+            <!-- Badge de Estoque -->
+            <div class="absolute top-2 right-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+              Estoque: {{ product.stock }}
             </div>
-            <div v-if="filters.period === 'custom'" class="sm:col-span-2">
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="form-label">Data Inicial</label>
-                  <input type="date" v-model="filters.startDate" class="input-field" />
-                </div>
-                <div>
-                  <label class="form-label">Data Final</label>
-                  <input type="date" v-model="filters.endDate" class="input-field" />
-                </div>
+
+            <!-- Imagem -->
+            <div class="w-full h-32 bg-gray-100 rounded-lg mb-2 flex items-center justify-center hover:bg-gray-200">
+              <img
+                v-if="product.image"
+                :src="product.image"
+                :alt="product.name"
+                class="w-full h-full object-cover rounded-lg"
+              />
+              <div v-else class="text-gray-400">
+                Sem imagem
               </div>
             </div>
-            <div>
-              <label class="form-label">Status</label>
-              <select v-model="filters.status" class="input-field">
-                <option value="">Todos</option>
-                <option value="completed">Concluída</option>
-                <option value="pending">Pendente</option>
-                <option value="cancelled">Cancelada</option>
-              </select>
-            </div>
-          </div>
-        </div>
 
-        <!-- Lista de Vendas -->
-        <div class="card">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Código
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Data
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Cliente
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="sale in sales" :key="sale.id">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  #{{ sale.id }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ formatDate(sale.created_at) }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ sale.customer_name }}</div>
-                  <div class="text-sm text-gray-500">{{ sale.customer_email }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  R$ {{ formatPrice(sale.total) }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span :class="getSaleStatusClass(sale.status)">
-                    {{ getSaleStatusText(sale.status) }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button 
-                    @click="viewSaleDetails(sale)" 
-                    class="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    Detalhes
-                  </button>
-                  <button 
-                    v-if="sale.status === 'pending'"
-                    @click="cancelSale(sale.id)" 
-                    class="text-red-600 hover:text-red-900"
-                  >
-                    Cancelar
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+            <!-- Informações do Produto -->
+            <h3 class="font-medium mb-1">{{ product.name }}</h3>
+            <p class="text-green-600 font-medium mb-2">R$ {{ formatPrice(product.price) }}</p>
+
+            <!-- Botão Adicionar -->
+            <button
+              @click="addToCart(product)"
+              class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
+            >
+              <i class="fas fa-cart-plus"></i>
+              Adicionar
+            </button>
+          </div>
         </div>
       </div>
-    </main>
 
-    <!-- Modal de Nova Venda -->
-    <div v-if="showNewSaleModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-      <div class="bg-white rounded-lg p-6 max-w-4xl w-full">
-        <h2 class="text-xl font-semibold mb-4">Nova Venda</h2>
-        <form @submit.prevent="saveSale" class="space-y-4">
-          <!-- Informações do Cliente -->
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="form-label">Nome do Cliente</label>
-              <input type="text" v-model="saleForm.customer_name" class="input-field" required />
-            </div>
-            <div>
-              <label class="form-label">Email do Cliente</label>
-              <input type="email" v-model="saleForm.customer_email" class="input-field" required />
-            </div>
-          </div>
+      <!-- Coluna 3: Carrinho -->
+      <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="text-xl font-bold mb-4">Carrinho</h2>
 
-          <!-- Produtos -->
-          <div>
-            <label class="form-label">Produtos</label>
-            <div v-for="(item, index) in saleForm.items" :key="index" class="grid grid-cols-12 gap-4 mb-2">
-              <div class="col-span-5">
-                <select v-model="item.product_id" class="input-field" @change="updateProductDetails(index)">
-                  <option value="">Selecione um produto</option>
-                  <option v-for="product in products" :key="product.id" :value="product.id">
-                    {{ product.name }} - R$ {{ formatPrice(product.price) }}
-                  </option>
-                </select>
+        <!-- Empty Cart -->
+        <div v-if="cart.length === 0" class="text-center py-8">
+          <p class="text-gray-600">Carrinho vazio</p>
+        </div>
+
+        <!-- Cart Items -->
+        <div v-else class="space-y-4">
+          <div
+            v-for="(item, index) in cart"
+            :key="item.id"
+            class="border-b pb-4 last:border-b-0"
+          >
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <div class="font-medium">{{ item.name }}</div>
+                <div class="text-sm text-gray-600">R$ {{ formatPrice(item.price) }}</div>
               </div>
-              <div class="col-span-2">
-                <input 
-                  type="number" 
-                  v-model="item.quantity" 
-                  class="input-field" 
-                  min="1" 
-                  @change="updateItemTotal(index)"
-                  placeholder="Qtd"
-                />
-              </div>
-              <div class="col-span-3">
-                <input 
-                  type="number" 
-                  v-model="item.price" 
-                  class="input-field" 
-                  step="0.01" 
-                  @change="updateItemTotal(index)"
-                  placeholder="Preço"
-                />
-              </div>
-              <div class="col-span-1 flex items-center">
-                R$ {{ formatPrice(item.total) }}
-              </div>
-              <div class="col-span-1 flex items-center">
-                <button 
-                  type="button" 
-                  @click="removeItem(index)" 
-                  class="text-red-600 hover:text-red-900"
-                >
-                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+              <div class="flex items-center space-x-2">
+                <button @click="updateQuantity(index, -1)" 
+                  class="text-gray-500 hover:text-gray-700">
+                  -
+                </button>
+                <span class="text-gray-700">{{ item.quantity }}</span>
+                <button @click="updateQuantity(index, 1)"
+                  class="text-gray-500 hover:text-gray-700">
+                  +
+                </button>
+                <button @click="removeFromCart(index)"
+                  class="text-red-500 hover:text-red-700 ml-2">
+                  Remover
                 </button>
               </div>
             </div>
-            <button 
-              type="button" 
-              @click="addItem" 
-              class="mt-2 text-sm text-blue-600 hover:text-blue-900"
-            >
-              + Adicionar Produto
-            </button>
+            <div class="text-right text-sm text-gray-600">
+              Subtotal: R$ {{ formatPrice(item.price * item.quantity) }}
+            </div>
           </div>
 
           <!-- Total -->
-          <div class="flex justify-between items-center pt-4 border-t">
-            <span class="text-lg font-semibold">Total:</span>
-            <span class="text-lg font-semibold">R$ {{ formatPrice(saleTotal) }}</span>
+          <div class="border-t pt-4">
+            <div class="flex justify-between items-center font-bold">
+              <span>Total:</span>
+              <span>R$ {{ formatPrice(cartTotal) }}</span>
+            </div>
           </div>
 
-          <div class="flex justify-end space-x-4">
-            <button type="button" @click="showNewSaleModal = false" class="btn-secondary">
-              Cancelar
-            </button>
-            <button type="submit" class="btn-primary">
-              Finalizar Venda
-            </button>
-          </div>
-        </form>
+          <!-- Finish Sale Button -->
+          <button
+            @click="openFinalizationModal"
+            :disabled="cart.length === 0"
+            class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Finalizar Venda
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Modal de Detalhes da Venda -->
-    <div v-if="selectedSale" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-      <div class="bg-white rounded-lg p-6 max-w-2xl w-full">
-        <h2 class="text-xl font-semibold mb-4">Detalhes da Venda #{{ selectedSale.id }}</h2>
-        
-        <div class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <p class="text-sm text-gray-500">Cliente</p>
-              <p class="font-medium">{{ selectedSale.customer_name }}</p>
-              <p class="text-sm text-gray-500">{{ selectedSale.customer_email }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Data</p>
-              <p class="font-medium">{{ formatDate(selectedSale.created_at) }}</p>
+    <!-- Modal de Finalização -->
+    <div v-if="showFinalizationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg w-full max-w-md mx-4">
+        <div class="p-6">
+          <h2 class="text-xl font-bold mb-4">Selecionar Cliente</h2>
+          
+          <!-- Busca de Cliente -->
+          <div class="mb-4">
+            <input
+              type="text"
+              v-model="customerSearch"
+              @input="searchCustomers"
+              placeholder="Digite o nome do cliente..."
+              class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+            <p class="text-sm text-gray-500 mt-1">Digite pelo menos 2 caracteres para buscar</p>
+          </div>
+
+          <!-- Loading -->
+          <div v-if="loading" class="text-center py-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          </div>
+
+          <!-- Lista de Clientes -->
+          <div v-if="filteredCustomers.length > 0" class="mb-4 max-h-48 overflow-y-auto border rounded-lg divide-y">
+            <div
+              v-for="customer in filteredCustomers"
+              :key="customer.id"
+              @click="selectCustomer(customer)"
+              class="p-3 hover:bg-indigo-50 cursor-pointer transition-colors"
+            >
+              <div class="font-medium">{{ customer.name }}</div>
+              <div class="text-sm text-gray-500">
+                {{ customer.phone || customer.document || 'Sem contato' }}
+              </div>
             </div>
           </div>
 
-          <div class="border-t pt-4">
-            <h3 class="font-medium mb-2">Produtos</h3>
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr>
-                  <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Produto</th>
-                  <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Qtd</th>
-                  <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Preço</th>
-                  <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="item in selectedSale.items" :key="item.id">
-                  <td class="px-4 py-2">{{ item.product_name }}</td>
-                  <td class="px-4 py-2 text-right">{{ item.quantity }}</td>
-                  <td class="px-4 py-2 text-right">R$ {{ formatPrice(item.price) }}</td>
-                  <td class="px-4 py-2 text-right">R$ {{ formatPrice(item.total) }}</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="3" class="px-4 py-2 text-right font-medium">Total:</td>
-                  <td class="px-4 py-2 text-right font-medium">R$ {{ formatPrice(selectedSale.total) }}</td>
-                </tr>
-              </tfoot>
-            </table>
+          <!-- Nenhum Resultado -->
+          <div v-if="customerSearch.length >= 2 && filteredCustomers.length === 0 && !loading" class="text-center py-4 text-gray-500">
+            Nenhum cliente encontrado
           </div>
 
-          <div class="flex justify-end">
-            <button @click="selectedSale = null" class="btn-secondary">
-              Fechar
+          <!-- Debug Info -->
+          <div v-if="customerSearch.length >= 2" class="text-xs text-gray-500 mt-2">
+            Status da busca: {{ loading ? 'Buscando...' : 'Concluído' }}
+            <br>
+            Resultados encontrados: {{ filteredCustomers.length }}
+          </div>
+
+          <!-- Cliente Selecionado -->
+          <div v-if="selectedCustomer" class="mb-6 bg-green-50 p-4 rounded-lg border border-green-200">
+            <div class="font-medium text-green-800">Cliente Selecionado</div>
+            <div class="text-green-700">{{ selectedCustomer.name }}</div>
+            <div class="text-sm text-green-600">
+              {{ selectedCustomer.phone || selectedCustomer.document || 'Sem contato' }}
+            </div>
+          </div>
+
+          <!-- Forma de Pagamento -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Forma de Pagamento
+            </label>
+            <select 
+              v-model="paymentMethod" 
+              class="w-full p-3 border rounded-lg bg-white"
+              :class="{'border-red-300': !paymentMethod && selectedCustomer}"
+            >
+              <option value="">Selecione uma forma de pagamento</option>
+              <option value="cash">Dinheiro</option>
+              <option value="credit_card">Cartão de Crédito</option>
+              <option value="debit_card">Cartão de Débito</option>
+              <option value="pix">PIX</option>
+            </select>
+          </div>
+
+          <!-- Botões -->
+          <div class="flex justify-end gap-3">
+            <button
+              @click="closeFinalizationModal"
+              class="px-4 py-2 text-gray-600 hover:text-gray-800"
+            >
+              Cancelar
+            </button>
+            <button
+              @click="confirmSale"
+              :disabled="!selectedCustomer || !paymentMethod || loading"
+              class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {{ loading ? 'Processando...' : 'Confirmar Venda' }}
             </button>
           </div>
         </div>
@@ -260,142 +234,375 @@
   </div>
 </template>
 
-<script setup>
+<script>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import axios from '../plugins/axios'
 
-const sales = ref([])
-const products = ref([])
-const showNewSaleModal = ref(false)
-const selectedSale = ref(null)
-const filters = ref({
-  period: 'today',
-  startDate: '',
-  endDate: '',
-  status: ''
-})
-
-const saleForm = ref({
-  customer_name: '',
-  customer_email: '',
-  items: [{ product_id: '', quantity: 1, price: 0, total: 0 }]
-})
-
-const saleTotal = computed(() => {
-  return saleForm.value.items.reduce((total, item) => total + item.total, 0)
-})
-
-onMounted(async () => {
-  await loadSales()
-  await loadProducts()
-})
-
-async function loadSales() {
-  try {
-    const token = localStorage.getItem('token')
-    const response = await axios.get('http://localhost:8000/api/sales', {
-      headers: { Authorization: `Bearer ${token}` },
-      params: filters.value
+export default {
+  name: 'Sales',
+  
+  setup() {
+    // Estado
+    const sales = ref([])
+    const loading = ref(false)
+    const error = ref(null)
+    const searchQuery = ref('')
+    const pagination = ref({
+      current_page: 1,
+      total: 0,
+      per_page: 10
     })
-    sales.value = response.data
-  } catch (error) {
-    console.error('Erro ao carregar vendas:', error)
-  }
-}
 
-async function loadProducts() {
-  try {
-    const token = localStorage.getItem('token')
-    const response = await axios.get('http://localhost:8000/api/products', {
-      headers: { Authorization: `Bearer ${token}` }
+    const productSearch = ref('')
+    const filteredProducts = ref([])
+    const cart = ref([])
+
+    const customers = ref([])
+    const customerSearch = ref('')
+    const filteredCustomers = ref([])
+    const selectedCustomer = ref(null)
+    const paymentMethod = ref('')
+    const showFinalizationModal = ref(false)
+    const showCustomerResults = ref(false)
+    
+    // Novo estado para o resumo do pedido
+    const showOrderSummary = ref(false)
+    const currentOrder = ref(null)
+
+    // Computed
+    const filteredSales = computed(() => {
+      if (!searchQuery.value) return sales.value
+      
+      const search = searchQuery.value.toLowerCase()
+      return sales.value.filter(sale => 
+        sale.code.toLowerCase().includes(search) ||
+        sale.customer?.name.toLowerCase().includes(search)
+      )
     })
-    products.value = response.data
-  } catch (error) {
-    console.error('Erro ao carregar produtos:', error)
-  }
-}
 
-function addItem() {
-  saleForm.value.items.push({ product_id: '', quantity: 1, price: 0, total: 0 })
-}
-
-function removeItem(index) {
-  saleForm.value.items.splice(index, 1)
-}
-
-function updateProductDetails(index) {
-  const item = saleForm.value.items[index]
-  const product = products.value.find(p => p.id === item.product_id)
-  if (product) {
-    item.price = product.price
-    updateItemTotal(index)
-  }
-}
-
-function updateItemTotal(index) {
-  const item = saleForm.value.items[index]
-  item.total = item.quantity * item.price
-}
-
-async function saveSale() {
-  try {
-    const token = localStorage.getItem('token')
-    await axios.post('http://localhost:8000/api/sales', saleForm.value, {
-      headers: { Authorization: `Bearer ${token}` }
+    const cartTotal = computed(() => {
+      return cart.value.reduce((total, item) => {
+        return total + (item.price * item.quantity)
+      }, 0)
     })
-    showNewSaleModal.value = false
-    await loadSales()
-    saleForm.value = {
-      customer_name: '',
-      customer_email: '',
-      items: [{ product_id: '', quantity: 1, price: 0, total: 0 }]
+
+    // Métodos
+    function formatDateTime(dateString) {
+      if (!dateString) return ''
+      return new Date(dateString).toLocaleString('pt-BR')
     }
-  } catch (error) {
-    console.error('Erro ao salvar venda:', error)
-  }
-}
 
-function viewSaleDetails(sale) {
-  selectedSale.value = sale
-}
+    function formatPrice(value) {
+      return Number(value).toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })
+    }
 
-async function cancelSale(id) {
-  if (!confirm('Tem certeza que deseja cancelar esta venda?')) return
+    async function loadSales(page = 1) {
+      loading.value = true
+      error.value = null
+      
+      try {
+        const response = await axios.get('/sales', {
+          params: {
+            page,
+            per_page: pagination.value.per_page
+          }
+        })
 
-  try {
-    const token = localStorage.getItem('token')
-    await axios.put(`http://localhost:8000/api/sales/${id}/cancel`, {}, {
-      headers: { Authorization: `Bearer ${token}` }
+        if (response.data.success) {
+          const paginatedData = response.data.data
+          sales.value = paginatedData.data || []
+          pagination.value = {
+            current_page: paginatedData.current_page || 1,
+            total: paginatedData.total || 0,
+            per_page: paginatedData.per_page || 10
+          }
+        } else {
+          sales.value = []
+          error.value = 'Erro ao carregar vendas'
+        }
+      } catch (err) {
+        error.value = err.message || 'Erro ao carregar vendas'
+        sales.value = []
+      } finally {
+        loading.value = false
+      }
+    }
+
+    async function loadCustomers() {
+      try {
+        const response = await axios.get('/customers')
+        if (response.data.success) {
+          customers.value = response.data.data
+        }
+      } catch (err) {
+        console.error('Erro ao carregar clientes:', err)
+      }
+    }
+
+    async function searchProducts() {
+      try {
+        loading.value = true
+        
+        console.log('Buscando produtos...')
+        
+        const response = await axios.get('/products', {
+          params: {
+            search: productSearch.value,
+            stock: 'in'
+          }
+        })
+        
+        console.log('Resposta da API:', response.data)
+        
+        if (response.data && response.data.data) {
+          // Mapear os produtos da resposta da API
+          filteredProducts.value = response.data.data.map(product => ({
+            id: product.id,
+            name: product.name,
+            price: parseFloat(product.price || 0),
+            stock: parseInt(product.stock || 0),
+            image: product.image_url
+          }))
+          
+          console.log('Produtos filtrados:', filteredProducts.value)
+        } else {
+          filteredProducts.value = []
+          console.error('Formato de resposta inválido:', response.data)
+        }
+      } catch (error) {
+        console.error('Erro ao buscar produtos:', error)
+        filteredProducts.value = []
+      } finally {
+        loading.value = false
+      }
+    }
+
+    function addToCart(product) {
+      const existingItem = cart.value.find(item => item.id === product.id)
+      
+      if (existingItem) {
+        existingItem.quantity++
+      } else {
+        cart.value.push({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          quantity: 1
+        })
+      }
+    }
+
+    function updateQuantity(index, change) {
+      const item = cart.value[index]
+      const newQuantity = item.quantity + change
+
+      if (newQuantity > 0) {
+        item.quantity = newQuantity
+      } else {
+        removeFromCart(index)
+      }
+    }
+
+    function removeFromCart(index) {
+      cart.value.splice(index, 1)
+    }
+
+    async function finalizeSale() {
+      if (cart.value.length === 0) return
+
+      try {
+        // Implementar lógica de finalização da venda
+        console.log('Finalizando venda:', {
+          items: cart.value,
+          total: cartTotal.value
+        })
+
+        // Limpar carrinho após venda
+        cart.value = []
+      } catch (error) {
+        console.error('Erro ao finalizar venda:', error)
+      }
+    }
+
+    function openFinalizationModal() {
+      showFinalizationModal.value = true
+    }
+
+    function closeFinalizationModal() {
+      showFinalizationModal.value = false
+      selectedCustomer.value = null
+      paymentMethod.value = ''
+    }
+
+    async function searchCustomers() {
+      console.log('Iniciando busca de clientes:', customerSearch.value)
+      
+      if (customerSearch.value.length < 2) {
+        showCustomerResults.value = false
+        filteredCustomers.value = []
+        return
+      }
+
+      try {
+        loading.value = true
+        showCustomerResults.value = true
+        
+        console.log('Fazendo requisição para /customers com busca:', customerSearch.value)
+        
+        const response = await axios.get('/customers', {
+          params: {
+            name: customerSearch.value // Alterado de 'search' para 'name' para corresponder à API
+          }
+        })
+
+        console.log('Resposta completa da API:', response)
+
+        if (response.data && response.data.data) {
+          console.log('Clientes encontrados:', response.data.data)
+          filteredCustomers.value = response.data.data
+        } else {
+          console.log('Nenhum cliente encontrado na resposta')
+          filteredCustomers.value = []
+        }
+      } catch (error) {
+        console.error('Erro detalhado ao buscar clientes:', error.response || error)
+        filteredCustomers.value = []
+      } finally {
+        loading.value = false
+      }
+    }
+
+    function selectCustomer(customer) {
+      selectedCustomer.value = customer
+      customerSearch.value = customer.name
+      showCustomerResults.value = false
+      console.log('Cliente selecionado:', customer)
+    }
+
+    async function confirmSale() {
+      if (!selectedCustomer.value || !paymentMethod.value) {
+        return
+      }
+
+      try {
+        loading.value = true
+        
+        // Log para debug
+        console.log('Método de pagamento selecionado:', paymentMethod.value)
+        
+        // Formatar os dados no formato que a API espera
+        const formattedItems = cart.value.map(item => {
+          const unit_price = parseFloat(item.price).toFixed(2)
+          const total = parseFloat(item.price * item.quantity).toFixed(2)
+          
+          return {
+            product_id: item.id,
+            quantity: item.quantity,
+            unit_price: unit_price,
+            price: unit_price,
+            total: total,
+            subtotal: total
+          }
+        })
+
+        const saleData = {
+          customer_id: selectedCustomer.value.id,
+          payment_method: paymentMethod.value,
+          total_amount: parseFloat(cartTotal.value).toFixed(2),
+          items: formattedItems
+        }
+
+        console.log('Dados completos da venda:', saleData)
+
+        const response = await axios.post('/sales', saleData)
+
+        if (response.data.success) {
+          // Armazenar dados do pedido para exibição do resumo
+          currentOrder.value = {
+            id: response.data.data.id,
+            customer: selectedCustomer.value,
+            payment_method: paymentMethod.value,
+            items: cart.value,
+            total: cartTotal.value,
+            date: new Date().toLocaleString()
+          }
+          
+          // Esconder modal de finalização e mostrar resumo
+          showFinalizationModal.value = false
+          showOrderSummary.value = true
+          
+          // Limpar carrinho
+          cart.value = []
+          
+          // Recarregar produtos para atualizar estoque
+          await searchProducts()
+        } else {
+          throw new Error(response.data.message || 'Erro ao finalizar venda')
+        }
+      } catch (error) {
+        console.error('Erro detalhado ao finalizar venda:', error.response?.data || error)
+        const errorMessage = error.response?.data?.message || 'Erro ao finalizar venda. Verifique os dados e tente novamente.'
+        const validationErrors = error.response?.data?.errors
+        
+        if (validationErrors) {
+          const errorMessages = Object.entries(validationErrors)
+            .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+            .join('\n')
+          alert(`Erros de validação:\n${errorMessages}`)
+        } else {
+          alert(errorMessage)
+        }
+      } finally {
+        loading.value = false
+      }
+    }
+
+    // Lifecycle
+    onMounted(() => {
+      console.log('Componente montado, buscando produtos...')
+      searchProducts()
     })
-    await loadSales()
-  } catch (error) {
-    console.error('Erro ao cancelar venda:', error)
+
+    return {
+      // Data
+      sales,
+      loading,
+      error,
+      searchQuery,
+      pagination,
+      filteredSales,
+      productSearch,
+      filteredProducts,
+      cart,
+      customers,
+      customerSearch,
+      filteredCustomers,
+      selectedCustomer,
+      paymentMethod,
+      showFinalizationModal,
+      showCustomerResults,
+
+      // Computed
+      cartTotal,
+
+      // Funções
+      formatDateTime,
+      formatPrice,
+      loadSales,
+      searchProducts,
+      addToCart,
+      updateQuantity,
+      removeFromCart,
+      finalizeSale,
+      openFinalizationModal,
+      closeFinalizationModal,
+      searchCustomers,
+      selectCustomer,
+      confirmSale
+    }
   }
-}
-
-function getSaleStatusClass(status) {
-  const classes = {
-    completed: 'bg-green-100 text-green-800',
-    pending: 'bg-yellow-100 text-yellow-800',
-    cancelled: 'bg-red-100 text-red-800'
-  }
-  return `px-2 py-1 text-xs font-medium rounded-full ${classes[status] || ''}`
-}
-
-function getSaleStatusText(status) {
-  const texts = {
-    completed: 'Concluída',
-    pending: 'Pendente',
-    cancelled: 'Cancelada'
-  }
-  return texts[status] || status
-}
-
-function formatDate(date) {
-  return new Date(date).toLocaleDateString('pt-BR')
-}
-
-function formatPrice(price) {
-  return Number(price).toFixed(2)
 }
 </script>

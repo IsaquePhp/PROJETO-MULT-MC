@@ -1,0 +1,224 @@
+<template>
+  <div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold mb-4">Vendas</h1>
+      
+      <!-- Filtros -->
+      <div class="bg-white rounded-lg shadow p-4 mb-4">
+        <div class="flex items-center space-x-4">
+          <div class="flex-1">
+            <input
+              type="text"
+              v-model="searchQuery"
+              placeholder="Buscar por código ou cliente..."
+              class="w-full p-2 border rounded-lg"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Vendas -->
+      <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="p-4">
+          <div v-if="loading" class="text-center py-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          </div>
+
+          <div v-else-if="error" class="text-center text-red-600 py-4">
+            {{ error }}
+          </div>
+
+          <div v-else-if="sales.length === 0" class="text-center text-gray-500 py-4">
+            Nenhuma venda encontrada
+          </div>
+
+          <div v-else>
+            <table class="w-full">
+              <thead>
+                <tr class="border-b">
+                  <th class="text-left p-2">Código</th>
+                  <th class="text-left p-2">Cliente</th>
+                  <th class="text-left p-2">Data</th>
+                  <th class="text-right p-2">Total</th>
+                  <th class="text-center p-2">Status</th>
+                  <th class="text-center p-2">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="sale in filteredSales" :key="sale.id" class="border-b hover:bg-gray-50">
+                  <td class="p-2">{{ sale.code }}</td>
+                  <td class="p-2">{{ sale.customer?.name }}</td>
+                  <td class="p-2">{{ formatDateTime(sale.created_at) }}</td>
+                  <td class="p-2 text-right">R$ {{ formatPrice(sale.total) }}</td>
+                  <td class="p-2 text-center">
+                    <span
+                      class="px-2 py-1 rounded text-sm"
+                      :class="{
+                        'bg-green-100 text-green-800': sale.status === 'completed',
+                        'bg-yellow-100 text-yellow-800': sale.status === 'pending',
+                        'bg-red-100 text-red-800': sale.status === 'cancelled'
+                      }"
+                    >
+                      {{ sale.status }}
+                    </span>
+                  </td>
+                  <td class="p-2 text-center">
+                    <button
+                      @click="openPrintModal(sale)"
+                      class="text-blue-600 hover:text-blue-800"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Paginação -->
+            <div class="flex justify-between items-center mt-4">
+              <div class="text-sm text-gray-500">
+                Mostrando {{ sales.length }} de {{ pagination.total }} vendas
+              </div>
+              
+              <div class="flex space-x-2">
+                <button
+                  v-if="pagination.current_page > 1"
+                  @click="loadSales(pagination.current_page - 1)"
+                  class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"
+                >
+                  Anterior
+                </button>
+                
+                <button
+                  v-if="sales.length === pagination.per_page"
+                  @click="loadSales(pagination.current_page + 1)"
+                  class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"
+                >
+                  Próxima
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref, computed, onMounted } from 'vue'
+import axios from '../plugins/axios'
+
+export default {
+  name: 'Sales',
+  
+  setup() {
+    // Variáveis reativas
+    const sales = ref([])
+    const loading = ref(false)
+    const error = ref(null)
+    const searchQuery = ref('')
+    const pagination = ref({
+      current_page: 1,
+      total: 0,
+      per_page: 10
+    })
+
+    // Computed properties para filtrar vendas
+    const filteredSales = computed(() => {
+      if (!searchQuery.value) return sales.value
+      
+      const search = searchQuery.value.toLowerCase()
+      return sales.value.filter(sale => 
+        sale.code.toLowerCase().includes(search) ||
+        sale.customer?.name.toLowerCase().includes(search)
+      )
+    })
+
+    // Funções de formatação
+    function formatDateTime(dateString) {
+      if (!dateString) return ''
+      return new Date(dateString).toLocaleString('pt-BR')
+    }
+
+    function formatPrice(value) {
+      if (!value) return '0,00'
+      return Number(value).toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })
+    }
+
+    // Funções de carregamento
+    async function loadSales(page = 1) {
+      loading.value = true
+      error.value = null
+      
+      try {
+        console.log('Carregando vendas...')
+        const response = await axios.get('/sales', {
+          params: {
+            page,
+            per_page: pagination.value.per_page
+          }
+        })
+        console.log('Resposta da API:', response.data)
+
+        if (response.data.success) {
+          const paginatedData = response.data.data
+          sales.value = paginatedData.data || []
+          pagination.value = {
+            current_page: paginatedData.current_page || 1,
+            total: paginatedData.total || 0,
+            per_page: paginatedData.per_page || 10
+          }
+          console.log('Vendas carregadas:', sales.value)
+        } else {
+          sales.value = []
+          error.value = 'Erro ao carregar vendas'
+        }
+      } catch (err) {
+        console.error('Erro ao carregar vendas:', err)
+        error.value = err.message || 'Erro ao carregar vendas'
+        sales.value = []
+      } finally {
+        loading.value = false
+      }
+    }
+
+    // Funções de ação
+    function openPrintModal(sale) {
+      // Implementar a lógica de impressão
+      console.log('Imprimir venda:', sale)
+    }
+
+    // Lifecycle hooks
+    onMounted(async () => {
+      console.log('Componente montado')
+      try {
+        await loadSales()
+      } catch (err) {
+        console.error('Erro ao inicializar:', err)
+      }
+    })
+
+    return {
+      // Estado
+      sales,
+      loading,
+      error,
+      searchQuery,
+      pagination,
+      filteredSales,
+
+      // Funções
+      formatDateTime,
+      formatPrice,
+      loadSales,
+      openPrintModal
+    }
+  }
+}
+</script>

@@ -13,7 +13,6 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained();
             $table->foreignId('sale_id')->nullable()->constrained();
             $table->foreignId('company_id')->constrained();
-            $table->foreignId('store_id')->constrained();
             
             $table->decimal('amount', 10, 2);
             $table->decimal('paid_amount', 10, 2)->default(0);
@@ -47,23 +46,10 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
         });
-        
-        // Tabela para notificações
-        Schema::create('payment_notifications', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('payment_id')->constrained();
-            $table->string('type'); // due_date, late_payment, payment_received
-            $table->string('status')->default('pending'); // pending, sent, failed
-            $table->timestamp('scheduled_for');
-            $table->timestamp('sent_at')->nullable();
-            $table->text('message');
-            $table->timestamps();
-        });
     }
 
     public function down()
     {
-        Schema::dropIfExists('payment_notifications');
         Schema::dropIfExists('payment_installments');
         Schema::dropIfExists('payments');
     }

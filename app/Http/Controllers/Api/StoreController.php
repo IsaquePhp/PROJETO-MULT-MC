@@ -14,11 +14,13 @@ class StoreController extends Controller
      */
     public function index()
     {
-        $stores = Store::where('user_id', Auth::id())
-            ->select('id', 'name', 'type', 'description')
+        $stores = Store::where('company_id', Auth::user()->company_id)
             ->get();
 
-        return response()->json($stores);
+        return response()->json([
+            'success' => true,
+            'data' => $stores
+        ]);
     }
 
     /**
@@ -26,11 +28,14 @@ class StoreController extends Controller
      */
     public function show($id)
     {
-        $store = Store::where('user_id', Auth::id())
+        $store = Store::where('company_id', Auth::user()->company_id)
             ->where('id', $id)
             ->firstOrFail();
 
-        return response()->json($store);
+        return response()->json([
+            'success' => true,
+            'data' => $store
+        ]);
     }
 
     /**
@@ -40,18 +45,36 @@ class StoreController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|string|max:50',
-            'description' => 'nullable|string|max:1000',
+            'document' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'address' => 'nullable|string|max:255',
+            'is_matrix' => 'boolean'
         ]);
 
-        $store = Store::create([
-            'user_id' => Auth::id(),
-            'name' => $validated['name'],
-            'type' => $validated['type'],
-            'description' => $validated['description'] ?? null,
-        ]);
+        // Se for matriz, verifica se já existe outra matriz
+        if ($validated['is_matrix'] ?? false) {
+            $existingMatrix = Store::where('company_id', Auth::user()->company_id)
+                ->where('is_matrix', true)
+                ->exists();
 
-        return response()->json($store, 201);
+            if ($existingMatrix) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Já existe uma loja matriz cadastrada'
+                ], 422);
+            }
+        }
+
+        $store = Store::create(array_merge($validated, [
+            'company_id' => Auth::user()->company_id
+        ]));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Loja criada com sucesso',
+            'data' => $store
+        ], 201);
     }
 
     /**
@@ -59,19 +82,25 @@ class StoreController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $store = Store::where('user_id', Auth::id())
+        $store = Store::where('company_id', Auth::user()->company_id)
             ->where('id', $id)
             ->firstOrFail();
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'type' => 'sometimes|string|max:50',
-            'description' => 'nullable|string|max:1000',
+            'document' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'address' => 'nullable|string|max:255',
+            'is_matrix' => 'boolean'
         ]);
 
         $store->update($validated);
 
-        return response()->json($store);
+        return response()->json([
+            'success' => true,
+            'data' => $store
+        ]);
     }
 
     /**
@@ -79,12 +108,34 @@ class StoreController extends Controller
      */
     public function destroy($id)
     {
-        $store = Store::where('user_id', Auth::id())
+        $store = Store::where('company_id', Auth::user()->company_id)
             ->where('id', $id)
             ->firstOrFail();
 
         $store->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * Retorna a loja padrão (matriz) do usuário
+     */
+    public function getDefault()
+    {
+        $store = Store::where('company_id', Auth::user()->company_id)
+            ->where('is_matrix', true)
+            ->first();
+
+        if (!$store) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Loja não encontrada'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $store
+        ]);
     }
 }

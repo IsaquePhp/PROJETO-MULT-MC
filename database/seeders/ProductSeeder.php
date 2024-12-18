@@ -2,114 +2,166 @@
 
 namespace Database\Seeders;
 
-use App\Models\Product;
 use Illuminate\Database\Seeder;
+use App\Models\Product;
+use App\Models\Category;
 
 class ProductSeeder extends Seeder
 {
     public function run()
     {
-        $products = [
-            [
-                'name' => 'Camiseta Básica',
-                'description' => 'Camiseta 100% algodão, disponível em várias cores',
-                'sku' => 'CAM-001',
-                'price' => 49.90,
-                'cost_price' => 25.00,
-                'stock' => 100,
-                'min_stock' => 20,
-                'category' => 'Roupas',
-                'unit' => 'un',
-                'status' => 'active'
+        $categories = [
+            'Bebidas' => [
+                [
+                    'name' => 'Coca-Cola 2L',
+                    'description' => 'Refrigerante Coca-Cola 2 litros',
+                    'sku' => 'COCA-2L',
+                    'barcode' => '7891234567890',
+                    'price' => 8.99,
+                    'cost_price' => 6.50,
+                    'stock' => 100,
+                    'min_stock' => 20,
+                    'brand' => 'Coca-Cola',
+                    'unit' => 'Un',
+                    'status' => 'active'
+                ],
+                [
+                    'name' => 'Guaraná Antarctica 2L',
+                    'description' => 'Refrigerante Guaraná Antarctica 2 litros',
+                    'sku' => 'GUAR-2L',
+                    'barcode' => '7891234567891',
+                    'price' => 7.99,
+                    'cost_price' => 5.50,
+                    'stock' => 80,
+                    'min_stock' => 15,
+                    'brand' => 'Antarctica',
+                    'unit' => 'Un',
+                    'status' => 'active'
+                ]
             ],
-            [
-                'name' => 'Tênis Esportivo',
-                'description' => 'Tênis para corrida e caminhada',
-                'sku' => 'TEN-001',
-                'price' => 199.90,
-                'cost_price' => 100.00,
-                'stock' => 50,
-                'min_stock' => 10,
-                'category' => 'Calçados',
-                'unit' => 'par',
-                'status' => 'active'
+            'Mercearia' => [
+                [
+                    'name' => 'Arroz Branco 5kg',
+                    'description' => 'Arroz branco tipo 1',
+                    'sku' => 'ARR-5KG',
+                    'barcode' => '7891234567892',
+                    'price' => 21.90,
+                    'cost_price' => 18.00,
+                    'stock' => 150,
+                    'min_stock' => 30,
+                    'brand' => 'Tio João',
+                    'unit' => 'Pct',
+                    'status' => 'active'
+                ],
+                [
+                    'name' => 'Feijão Carioca 1kg',
+                    'description' => 'Feijão carioca tipo 1',
+                    'sku' => 'FEI-1KG',
+                    'barcode' => '7891234567893',
+                    'price' => 8.90,
+                    'cost_price' => 6.50,
+                    'stock' => 200,
+                    'min_stock' => 40,
+                    'brand' => 'Camil',
+                    'unit' => 'Pct',
+                    'status' => 'active'
+                ]
             ],
-            [
-                'name' => 'Relógio Digital',
-                'description' => 'Relógio resistente à água com múltiplas funções',
-                'sku' => 'REL-001',
-                'price' => 150.00,
-                'cost_price' => 75.00,
-                'stock' => 30,
-                'min_stock' => 5,
-                'category' => 'Acessórios',
-                'unit' => 'un',
-                'status' => 'active'
+            'Hortifruti' => [
+                [
+                    'name' => 'Banana Prata',
+                    'description' => 'Banana prata madura',
+                    'sku' => 'BAN-KG',
+                    'barcode' => '7891234567894',
+                    'price' => 5.99,
+                    'cost_price' => 3.50,
+                    'stock' => 50,
+                    'min_stock' => 10,
+                    'brand' => 'In Natura',
+                    'unit' => 'Kg',
+                    'status' => 'active'
+                ],
+                [
+                    'name' => 'Tomate',
+                    'description' => 'Tomate maduro',
+                    'sku' => 'TOM-KG',
+                    'barcode' => '7891234567895',
+                    'price' => 6.99,
+                    'cost_price' => 4.50,
+                    'stock' => 40,
+                    'min_stock' => 8,
+                    'brand' => 'In Natura',
+                    'unit' => 'Kg',
+                    'status' => 'active'
+                ]
             ],
-            [
-                'name' => 'Notebook Basic',
-                'description' => 'Notebook ideal para tarefas básicas e navegação',
-                'sku' => 'NOT-001',
-                'price' => 2499.90,
-                'cost_price' => 1800.00,
-                'stock' => 15,
-                'min_stock' => 3,
-                'category' => 'Eletrônicos',
-                'unit' => 'un',
-                'status' => 'active'
+            'Limpeza' => [
+                [
+                    'name' => 'Detergente 500ml',
+                    'description' => 'Detergente líquido neutro',
+                    'sku' => 'DET-500',
+                    'barcode' => '7891234567896',
+                    'price' => 2.99,
+                    'cost_price' => 1.80,
+                    'stock' => 120,
+                    'min_stock' => 24,
+                    'brand' => 'Ypê',
+                    'unit' => 'Un',
+                    'status' => 'active'
+                ],
+                [
+                    'name' => 'Sabão em Pó 1kg',
+                    'description' => 'Sabão em pó multiação',
+                    'sku' => 'SAB-1KG',
+                    'barcode' => '7891234567897',
+                    'price' => 12.90,
+                    'cost_price' => 9.50,
+                    'stock' => 80,
+                    'min_stock' => 16,
+                    'brand' => 'Omo',
+                    'unit' => 'Pct',
+                    'status' => 'active'
+                ]
             ],
-            [
-                'name' => 'Sofá 3 Lugares',
-                'description' => 'Sofá confortável em tecido suede',
-                'sku' => 'SOF-001',
-                'price' => 1299.90,
-                'cost_price' => 800.00,
-                'stock' => 8,
-                'min_stock' => 2,
-                'category' => 'Móveis',
-                'unit' => 'un',
-                'status' => 'active'
-            ],
-            [
-                'name' => 'Vaso Decorativo',
-                'description' => 'Vaso em cerâmica para plantas ou decoração',
-                'sku' => 'VAS-001',
-                'price' => 89.90,
-                'cost_price' => 45.00,
-                'stock' => 40,
-                'min_stock' => 8,
-                'category' => 'Decoração',
-                'unit' => 'un',
-                'status' => 'active'
-            ],
-            [
-                'name' => 'Boneco de Ação',
-                'description' => 'Boneco articulado de super-herói',
-                'sku' => 'BON-001',
-                'price' => 129.90,
-                'cost_price' => 65.00,
-                'stock' => 25,
-                'min_stock' => 5,
-                'category' => 'Brinquedos',
-                'unit' => 'un',
-                'status' => 'active'
-            ],
-            [
-                'name' => 'Livro Best-seller',
-                'description' => 'Romance best-seller internacional',
-                'sku' => 'LIV-001',
-                'price' => 59.90,
-                'cost_price' => 30.00,
-                'stock' => 60,
-                'min_stock' => 12,
-                'category' => 'Livros',
-                'unit' => 'un',
-                'status' => 'active'
+            'Higiene' => [
+                [
+                    'name' => 'Papel Higiênico 12un',
+                    'description' => 'Papel higiênico folha dupla',
+                    'sku' => 'PAP-12',
+                    'barcode' => '7891234567898',
+                    'price' => 18.90,
+                    'cost_price' => 14.50,
+                    'stock' => 60,
+                    'min_stock' => 12,
+                    'brand' => 'Personal',
+                    'unit' => 'Pct',
+                    'status' => 'active'
+                ],
+                [
+                    'name' => 'Creme Dental 90g',
+                    'description' => 'Creme dental com flúor',
+                    'sku' => 'CRE-90G',
+                    'barcode' => '7891234567899',
+                    'price' => 4.99,
+                    'cost_price' => 3.20,
+                    'stock' => 100,
+                    'min_stock' => 20,
+                    'brand' => 'Colgate',
+                    'unit' => 'Un',
+                    'status' => 'active'
+                ]
             ]
         ];
 
-        foreach ($products as $product) {
-            Product::create($product);
+        foreach ($categories as $categoryName => $products) {
+            $category = Category::where('name', $categoryName)->first();
+            if (!$category) {
+                $category = Category::create(['name' => $categoryName]);
+            }
+
+            foreach ($products as $product) {
+                Product::create(array_merge($product, ['category_id' => $category->id]));
+            }
         }
     }
 }

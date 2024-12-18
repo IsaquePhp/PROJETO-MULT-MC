@@ -21,6 +21,7 @@ import Lancamentos from '../views/Financial/Lancamentos.vue'
 import Budgets from '../views/Budgets.vue'
 import Reports from '../views/Reports.vue'
 import Products from '../views/Products.vue'
+import SalesList from '../views/SalesList.vue'
 
 const routes = [
   {
@@ -79,6 +80,12 @@ const routes = [
     path: '/sales',
     name: 'Sales',
     component: Sales,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/sales-history',
+    name: 'SalesHistory',
+    component: SalesList,
     meta: { requiresAuth: true }
   },
   {
@@ -157,33 +164,24 @@ const router = createRouter({
   routes
 })
 
-// Navigation guard
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
 
-  // Initialize auth state if not already done
-  if (!authStore.isAuthenticated) {
-    authStore.initializeAuth()
+  // Se a rota não requer autenticação nem é para visitantes, permite
+  if (!requiresAuth && !requiresGuest) {
+    return next()
   }
 
-  if (requiresAuth) {
-    try {
-      const isAuthenticated = await authStore.checkAuth()
-      if (!isAuthenticated) {
-        next('/login')
-        return
-      }
-    } catch (error) {
-      next('/login')
-      return
-    }
-  }
+  // Verifica autenticação
+  const isAuthenticated = await authStore.checkAuth()
 
-  if (requiresGuest && authStore.isAuthenticated) {
-    next('/dashboard')
-    return
+  // Redireciona com base nas regras de autenticação
+  if (requiresAuth && !isAuthenticated) {
+    return next('/login')
+  } else if (requiresGuest && isAuthenticated) {
+    return next('/dashboard')
   }
 
   next()

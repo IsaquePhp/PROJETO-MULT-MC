@@ -1,9 +1,10 @@
 import axios from 'axios'
 import { useAuthStore } from '../stores/auth'
+import router from '../router'
 
 // Configuração base do axios
 const instance = axios.create({
-  baseURL: 'http://localhost/VERSAO%20DIEGO/api-loja-mc/public/api',
+  baseURL: 'http://127.0.0.1:8000/api',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -13,7 +14,7 @@ const instance = axios.create({
 
 // Interceptor de requisição
 instance.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const token = localStorage.getItem('token')
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
@@ -27,29 +28,20 @@ instance.interceptors.request.use(
 
 // Interceptor de resposta
 instance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response
+  },
   async (error) => {
-    const authStore = useAuthStore()
-    
-    if (error.response) {
-      // Erro de autenticação
-      if (error.response.status === 401) {
-        await authStore.logout()
-      }
+    if (error.response && error.response.status === 401) {
+      const currentPath = router.currentRoute.value.path
       
-      // Erro de validação
-      if (error.response.status === 422) {
-        return Promise.reject(error.response.data)
+      // Apenas faz logout se não estiver na página de login
+      if (currentPath !== '/login') {
+        const authStore = useAuthStore()
+        await authStore.logout()
+        router.push('/login')
       }
-
-      // Log de erro para debug
-      console.error('API Error:', {
-        status: error.response.status,
-        data: error.response.data,
-        url: error.config.url
-      })
     }
-    
     return Promise.reject(error)
   }
 )

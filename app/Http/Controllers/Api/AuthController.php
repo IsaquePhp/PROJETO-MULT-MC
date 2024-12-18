@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
@@ -43,29 +44,56 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|email',
+                'password' => 'required'
+            ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Erro de validação',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+            // Verificar se o usuário existe
+            $user = User::where('email', $request->email)->first();
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Credenciais inválidas'
+                ], 401);
+            }
+
+            // Verificar a senha
+            if (!Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'message' => 'Credenciais inválidas'
+                ], 401);
+            }
+
+            // Remover tokens antigos
+            $user->tokens()->delete();
+
+            // Criar novo token
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            // Fazer login
+            Auth::login($user);
+
             return response()->json([
-                'message' => 'Invalid login credentials'
-            ], 401);
+                'user' => $user,
+                'access_token' => $token,
+                'token_type' => 'Bearer'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Login error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Erro ao fazer login',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
         }
-
-        $user = User::where('email', $request->email)->firstOrFail();
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'user' => $user,
-            'access_token' => $token,
-            'token_type' => 'Bearer'
-        ]);
     }
 
     public function logout(Request $request)
@@ -76,7 +104,17 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        try {
+            $user = $request->user();
+            if (!$user) {
+                return response()->json(['message' => 'Usuário não autenticado'], 401);
+            }
+
+            return response()->json($user);
+        } catch (\Exception $e) {
+            Log::error('Error in me endpoint: ' . $e->getMessage());
+            return response()->json(['message' => 'Erro ao obter dados do usuário'], 500);
+        }
     }
 
     public function updateProfile(Request $request)
@@ -105,9 +143,12 @@ class AuthController extends Controller
         if ($request->has('password')) {
             $user->password = Hash::make($request->password);
         }
-
+        
         $user->save();
-
-        return response()->json($user);
+        
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'user' => $user
+        ]);
     }
 }

@@ -4,29 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Sale;
 use App\Models\Product;
 
 class SaleItem extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'sale_id',
         'product_id',
         'quantity',
         'unit_price',
-        'discount',
         'total'
     ];
 
     protected $casts = [
-        'quantity' => 'integer',
         'unit_price' => 'decimal:2',
-        'discount' => 'decimal:2',
         'total' => 'decimal:2'
     ];
+
+    protected $with = ['product'];
 
     /**
      * Get the sale that owns the item.
@@ -45,13 +43,13 @@ class SaleItem extends Model
     }
 
     /**
-     * Calculate the total for this item.
+     * Calculate the subtotal for this item.
      */
-    public function calculateTotal()
+    public function calculateSubtotal()
     {
-        $subtotal = $this->quantity * $this->unit_price;
-        $this->total = $subtotal - ($subtotal * ($this->discount / 100));
-        return $this->total;
+        $this->subtotal = $this->quantity * $this->price;
+        $this->save();
+        return $this->subtotal;
     }
 
     /**

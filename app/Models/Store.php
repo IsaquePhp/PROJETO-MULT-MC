@@ -13,45 +13,24 @@ class Store extends Model
     protected $fillable = [
         'company_id',
         'name',
-        'cnpj',
-        'email',
+        'document',
         'phone',
+        'email',
         'address',
-        'city',
-        'state',
-        'zip_code',
-        'is_matrix',
-        'active'
+        'is_matrix'
     ];
 
     protected $casts = [
-        'is_matrix' => 'boolean',
-        'active' => 'boolean'
+        'is_matrix' => 'boolean'
     ];
-
-    // Relationships
-    public function company()
-    {
-        return $this->belongsTo(Company::class);
-    }
-
-    public function inventory()
-    {
-        return $this->hasMany(Inventory::class);
-    }
 
     public function sales()
     {
         return $this->hasMany(Sale::class);
     }
 
-    public function cashFlow()
+    public static function getMatrix()
     {
-        return $this->hasMany(CashFlow::class);
-    }
-
-    public function users()
-    {
-        return $this->belongsToMany(User::class);
+        return static::where('is_matrix', true)->first();
     }
 }

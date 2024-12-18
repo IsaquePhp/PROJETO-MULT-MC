@@ -11,13 +11,28 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from './stores/auth'
 import Sidebar from './components/Sidebar.vue'
 
 const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
 
-// Mostra a sidebar apenas se não estiver nas páginas de auth (login, registro, reset senha)
+// Inicialização da autenticação
+onMounted(async () => {
+  const isAuthenticated = await authStore.checkAuth()
+  const authRoutes = ['/login', '/register', '/reset-password']
+  
+  if (isAuthenticated && authRoutes.includes(route.path)) {
+    router.push('/dashboard')
+  } else if (!isAuthenticated && !authRoutes.includes(route.path)) {
+    router.push('/login')
+  }
+})
+
+// Mostra a sidebar apenas se não estiver nas páginas de auth
 const showSidebar = computed(() => {
   const authRoutes = ['/login', '/register', '/reset-password']
   return !authRoutes.includes(route.path)

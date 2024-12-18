@@ -51,6 +51,14 @@ class Product extends Model
     }
 
     /**
+     * Get the category that owns the product.
+     */
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    /**
      * Update stock quantity
      */
     public function updateStock(int $quantity, string $type = 'add')
@@ -94,10 +102,5 @@ class Product extends Model
                 $query->where('status', Sale::STATUS_COMPLETED);
             })
             ->sum('quantity');
-    }
-
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
     }
 }

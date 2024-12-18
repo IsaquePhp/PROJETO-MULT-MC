@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\Company;
 
 class AdminUserSeeder extends Seeder
 {
@@ -13,12 +14,28 @@ class AdminUserSeeder extends Seeder
      */
     public function run()
     {
+        // Criar empresa padrão se não existir
+        $company = Company::firstOrCreate(
+            ['document' => '00.000.000/0000-00'],
+            [
+                'name' => 'Empresa Padrão',
+                'email' => 'empresa@padrao.com',
+                'phone' => '(00) 0000-0000',
+                'address' => 'Endereço Padrão',
+                'city' => 'Cidade',
+                'state' => 'UF',
+                'zip_code' => '00000-000',
+                'status' => 'active'
+            ]
+        );
+
         // Criar o usuário admin se não existir
         $user = \App\Models\User::firstOrCreate(
             ['email' => 'admin@admin.com'],
             [
                 'name' => 'Administrador',
                 'password' => bcrypt('123456'),
+                'company_id' => $company->id
             ]
         );
 

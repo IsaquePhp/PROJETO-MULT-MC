@@ -88,6 +88,12 @@
                 >
                   {{ client.active ? 'Desativar' : 'Ativar' }}
                 </button>
+                <button 
+                  @click="deleteClient(client)"
+                  class="text-red-600 hover:text-red-900"
+                >
+                  Excluir
+                </button>
               </td>
             </tr>
           </tbody>
@@ -203,6 +209,37 @@
         </form>
       </div>
     </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div v-if="showDeleteConfirmModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+        <div class="text-center mb-6">
+          <svg class="mx-auto h-12 w-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <h3 class="mt-4 text-lg font-medium text-gray-900">
+            Confirmar Exclusão
+          </h3>
+          <p class="mt-2 text-sm text-gray-500">
+            {{ deleteConfirmMessage }}
+          </p>
+        </div>
+        <div class="flex justify-center space-x-4">
+          <button
+            @click="confirmDelete"
+            class="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          >
+            Sim
+          </button>
+          <button
+            @click="cancelDelete"
+            class="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            Não
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -227,6 +264,11 @@ const clientForm = ref({
   state: '',
   postal_code: ''
 })
+
+// Estado para o modal de confirmação
+const showDeleteConfirmModal = ref(false)
+const deleteConfirmMessage = ref('')
+const clientToDelete = ref(null)
 
 // Fetch clients from API
 const fetchClients = async () => {
@@ -283,6 +325,31 @@ const toggleClientStatus = async (client) => {
   } catch (error) {
     console.error('Error toggling client status:', error)
   }
+}
+
+// Excluir cliente
+function deleteClient(client) {
+  clientToDelete.value = client
+  deleteConfirmMessage.value = 'Tem certeza que deseja excluir este cliente?'
+  showDeleteConfirmModal.value = true
+}
+
+// Confirmar exclusão
+async function confirmDelete() {
+  try {
+    await axios.delete(`/api/clients/${clientToDelete.value.id}`)
+    await fetchClients() // Refresh the list
+    showDeleteConfirmModal.value = false
+    clientToDelete.value = null
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Erro ao excluir cliente'
+  }
+}
+
+// Cancelar exclusão
+function cancelDelete() {
+  showDeleteConfirmModal.value = false
+  clientToDelete.value = null
 }
 
 // Close modal

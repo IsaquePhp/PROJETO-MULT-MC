@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Sale;
 use App\Models\Product;
+use App\Models\Customer;
+use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class SaleController extends Controller
 {
@@ -16,11 +20,11 @@ class SaleController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Sale::with(['items.product', 'user', 'store']);
+        $query = Sale::with(['items.product', 'customer', 'store']);
 
         // Filtros
         if ($request->has('status')) {
-            $query->where('sale_status', $request->status);
+            $query->where('status', $request->status);
         }
 
         if ($request->has('payment_status')) {
@@ -50,62 +54,114 @@ class SaleController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'store_id' => 'required|exists:stores,id',
-            'customer_name' => 'required|string|max:255',
-            'customer_document' => 'nullable|string|max:20',
+            'customer_id' => 'required|exists:customers,id',
+            'store_id' => 'nullable|exists:stores,id',
             'payment_method' => 'required|string|in:cash,credit_card,debit_card,pix',
+            'installments' => 'nullable|integer|min:1|max:12',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
-            'items.*.unit_price' => 'nullable|numeric|min:0',
-            'items.*.discount' => 'nullable|numeric|min:0|max:100',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.total' => 'required|numeric|min:0',
             'notes' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
+                'message' => 'Dados inválidos',
                 'errors' => $validator->errors()
             ], 422);
         }
 
         DB::beginTransaction();
         try {
+            // Buscar o cliente
+            $customer = Customer::findOrFail($request->customer_id);
+            
+            // Buscar ou criar a loja
+            $store = $request->store_id ? Store::findOrFail($request->store_id) : Store::first();
+            if (!$store) {
+                $store = Store::create([
+                    'name' => 'Loja Padrão',
+                    'is_matrix' => true
+                ]);
+            }
+
+            // Criar a venda
             $sale = Sale::create([
-                'user_id' => auth()->id(),
-                'store_id' => $request->store_id,
-                'customer_name' => $request->customer_name,
-                'customer_document' => $request->customer_document,
+                'code' => 'V' . str_pad(Sale::count() + 1, 6, '0', STR_PAD_LEFT),
+                'customer_id' => $customer->id,
+                'store_id' => $store->id,
+                'customer_name' => $customer->name,
+                'customer_document' => $customer->cpf_cnpj,
                 'payment_method' => $request->payment_method,
+                'installments' => $request->installments ?? 1,
                 'payment_status' => 'pending',
                 'sale_status' => 'pending',
-                'notes' => $request->notes
+                'notes' => $request->notes,
+                'user_id' => auth()->check() ? auth()->id() : null // Only set user_id if authenticated
             ]);
 
+            $total = 0;
+
+            // Adicionar itens à venda
             foreach ($request->items as $item) {
                 $product = Product::findOrFail($item['product_id']);
-                $sale->addItem(
-                    $product,
-                    $item['quantity'],
-                    $item['unit_price'] ?? null,
-                    $item['discount'] ?? 0
-                );
+                
+                // Verificar estoque
+                if ($product->stock < $item['quantity']) {
+                    throw new \Exception("Produto {$product->name} não possui estoque suficiente. Disponível: {$product->stock}");
+                }
+
+                // Calcular total do item
+                $itemTotal = $item['quantity'] * $item['unit_price'];
+
+                // Validar se o total calculado bate com o total informado
+                if (abs($itemTotal - $item['total']) > 0.01) {
+                    throw new \Exception("Total do item {$product->name} está incorreto");
+                }
+
+                // Adicionar item
+                $sale->items()->create([
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'total' => $itemTotal
+                ]);
+
+                // Atualizar estoque
+                $product->decrement('stock', $item['quantity']);
+
+                $total += $itemTotal;
+            }
+
+            // Atualizar total da venda
+            $sale->update(['total' => $total]);
+
+            // Se for pagamento em dinheiro ou débito, já marca como pago
+            if (in_array($request->payment_method, ['cash', 'debit_card', 'pix'])) {
+                $sale->update([
+                    'payment_status' => 'paid',
+                    'sale_status' => 'completed',
+                    'paid_at' => now()
+                ]);
             }
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Sale created successfully',
-                'data' => $sale->load(['items.product', 'user', 'store'])
-            ], 201);
+                'message' => 'Venda realizada com sucesso',
+                'data' => $sale->load('items.product')
+            ]);
+
         } catch (\Exception $e) {
-            DB::rollBack();
+            DB::rollback();
             return response()->json([
                 'success' => false,
-                'message' => 'Error creating sale',
-                'error' => $e->getMessage()
-            ], 500);
+                'message' => $e->getMessage()
+            ], 400);
         }
     }
 
@@ -116,7 +172,7 @@ class SaleController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => $sale->load(['items.product', 'user', 'store'])
+            'data' => $sale->load(['items.product', 'customer', 'store'])
         ]);
     }
 
@@ -126,16 +182,16 @@ class SaleController extends Controller
     public function complete(Sale $sale)
     {
         try {
-            $sale->complete();
+            $sale->update(['sale_status' => 'completed']);
             return response()->json([
                 'success' => true,
-                'message' => 'Sale completed successfully',
-                'data' => $sale->load(['items.product', 'user', 'store'])
+                'message' => 'Venda finalizada com sucesso',
+                'data' => $sale->load(['items.product', 'customer'])
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error completing sale',
+                'message' => 'Erro ao finalizar venda',
                 'error' => $e->getMessage()
             ], 400);
         }
@@ -147,16 +203,22 @@ class SaleController extends Controller
     public function cancel(Sale $sale)
     {
         try {
-            $sale->cancel();
+            // Devolver produtos ao estoque
+            foreach ($sale->items as $item) {
+                $item->product->increment('stock', $item->quantity);
+            }
+
+            $sale->update(['sale_status' => 'cancelled']);
+            
             return response()->json([
                 'success' => true,
-                'message' => 'Sale cancelled successfully',
-                'data' => $sale->load(['items.product', 'user', 'store'])
+                'message' => 'Venda cancelada com sucesso',
+                'data' => $sale->load(['items.product', 'customer'])
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error cancelling sale',
+                'message' => 'Erro ao cancelar venda',
                 'error' => $e->getMessage()
             ], 400);
         }
@@ -241,6 +303,41 @@ class SaleController extends Controller
                 'success' => false,
                 'message' => 'Error updating sale status',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate PDF receipt for a sale
+     */
+    public function generatePdf(Sale $sale)
+    {
+        try {
+            $sale->load(['items.product', 'customer']);
+            
+            $pdf = PDF::loadView('pdf.sale', compact('sale'));
+            
+            // Configurar o PDF sem margens
+            $pdf->setPaper('A4', 'portrait');
+            $pdf->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => true,
+                'isHtml5ParserEnabled' => true,
+                'dpi' => 150,
+                'defaultMediaType' => 'screen',
+                'isFontSubsettingEnabled' => true,
+                'margin-top' => 0,
+                'margin-right' => 0,
+                'margin-bottom' => 0,
+                'margin-left' => 0
+            ]);
+
+            return $pdf->stream('pedido-' . $sale->id . '.pdf');
+        } catch (\Exception $e) {
+            \Log::error('Erro ao gerar PDF: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao gerar PDF: ' . $e->getMessage()
             ], 500);
         }
     }
