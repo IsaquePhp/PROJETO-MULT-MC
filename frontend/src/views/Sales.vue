@@ -34,42 +34,50 @@
 
         <!-- Product Grid -->
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div
-            v-for="product in filteredProducts"
-            :key="product.id"
-            class="border rounded-lg p-4 relative hover:shadow-lg transition-shadow"
-          >
-            <!-- Badge de Estoque -->
-            <div class="absolute top-2 right-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-              Estoque: {{ product.stock }}
-            </div>
-
-            <!-- Imagem -->
-            <div class="w-full h-32 bg-gray-100 rounded-lg mb-2 flex items-center justify-center hover:bg-gray-200">
-              <img
-                v-if="product.image"
-                :src="product.image"
-                :alt="product.name"
-                class="w-full h-full object-cover rounded-lg"
-              />
-              <div v-else class="text-gray-400">
-                Sem imagem
-              </div>
-            </div>
-
-            <!-- Informações do Produto -->
-            <h3 class="font-medium mb-1">{{ product.name }}</h3>
-            <p class="text-green-600 font-medium mb-2">R$ {{ formatPrice(product.price) }}</p>
-
-            <!-- Botão Adicionar -->
-            <button
-              @click="addToCart(product)"
-              class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
+          <template v-for="product in sortedProducts" :key="product.id">
+            <div 
+              class="border rounded-lg p-4 relative hover:shadow-lg transition-shadow"
+              :class="{'opacity-75': product.stock === 0}"
             >
-              <i class="fas fa-cart-plus"></i>
-              Adicionar
-            </button>
-          </div>
+              <!-- Badge de Estoque -->
+              <div 
+                class="absolute top-2 right-2 px-2 py-1 rounded-full text-xs"
+                :class="product.stock === 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'"
+              >
+                Estoque: {{ product.stock }}
+              </div>
+
+              <!-- Imagem -->
+              <div class="w-full h-32 bg-gray-100 rounded-lg mb-2 flex items-center justify-center hover:bg-gray-200">
+                <img
+                  v-if="product.image"
+                  :src="product.image"
+                  :alt="product.name"
+                  class="w-full h-full object-cover rounded-lg"
+                />
+                <div v-else class="text-gray-400">
+                  Sem imagem
+                </div>
+              </div>
+
+              <!-- Informações do Produto -->
+              <h3 class="font-medium mb-1">{{ product.name }}</h3>
+              <p class="text-green-600 font-medium mb-2">R$ {{ formatPrice(product.price) }}</p>
+
+              <!-- Botão Adicionar -->
+              <button
+                @click="addToCart(product)"
+                class="w-full py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                :class="product.stock === 0 ? 
+                  'bg-gray-300 text-gray-500 cursor-not-allowed' : 
+                  'bg-indigo-600 text-white hover:bg-indigo-700'"
+                :disabled="product.stock === 0"
+              >
+                <i class="fas fa-cart-plus"></i>
+                {{ product.stock === 0 ? 'Indisponível' : 'Adicionar' }}
+              </button>
+            </div>
+          </template>
         </div>
       </div>
 
@@ -79,73 +87,73 @@
 
         <!-- Empty Cart -->
         <div v-if="cart.length === 0" class="text-center py-8">
-          <p class="text-gray-600">Carrinho vazio</p>
+          <i class="fas fa-shopping-cart text-gray-300 text-4xl mb-3"></i>
+          <p class="text-gray-500">Seu carrinho está vazio</p>
         </div>
 
         <!-- Cart Items -->
         <div v-else class="space-y-4">
-          <table class="min-w-full">
-            <thead>
-              <tr>
-                <th class="py-2">#</th>
-                <th class="py-2">Produto</th>
-                <th class="py-2 text-center">Qtd</th>
-                <th class="py-2 text-right">Preço</th>
-                <th class="py-2 text-right">Total</th>
-                <th class="py-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(item, index) in cart" :key="item.id">
-                <td class="py-2">{{ index + 1 }}</td>
-                <td class="py-2">{{ item.name }}</td>
-                <td class="py-2 text-center">
-                  <div class="flex items-center justify-center gap-2">
-                    <button 
-                      @click="decreaseQuantity(item)"
-                      class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                    >
-                      <i class="fas fa-minus"></i>
-                    </button>
-                    {{ item.quantity }}
-                    <button 
-                      @click="increaseQuantity(item)"
-                      class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                    >
-                      <i class="fas fa-plus"></i>
-                    </button>
-                  </div>
-                </td>
-                <td class="py-2 text-right">{{ formatCurrency(item.price) }}</td>
-                <td class="py-2 text-right">{{ formatCurrency(item.price * item.quantity) }}</td>
-                <td class="py-2 text-right">
-                  <button 
-                    @click="removeFromCart(item)" 
-                    class="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-100"
-                    title="Remover item"
-                  >
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="4" class="py-2 text-right font-bold">Total:</td>
-                <td class="py-2 text-right font-bold">{{ formatCurrency(cartTotal) }}</td>
-                <td></td>
-              </tr>
-            </tfoot>
-          </table>
+          <!-- Item do Carrinho -->
+          <div v-for="(item, index) in cart" :key="item.id" 
+            class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+            
+            <!-- Imagem do Produto -->
+            <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+              <img v-if="item.image" :src="item.image" :alt="item.name" class="w-full h-full object-cover">
+              <i v-else class="fas fa-box text-gray-400 text-xl"></i>
+            </div>
 
-          <!-- Finish Sale Button -->
-          <button
-            @click="openFinalizationModal"
-            :disabled="cart.length === 0"
-            class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
-          >
-            Finalizar Venda
-          </button>
+            <!-- Informações do Produto -->
+            <div class="flex-1">
+              <h3 class="font-medium text-gray-800">{{ item.name }}</h3>
+              <p class="text-gray-600 text-sm">R$ {{ formatPrice(item.price) }}</p>
+            </div>
+
+            <!-- Controles de Quantidade -->
+            <div class="flex items-center gap-2">
+              <button 
+                @click="decreaseQuantity(item)"
+                class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
+                title="Diminuir quantidade"
+              >
+                <i class="fa-solid fa-circle-minus text-gray-600 hover:text-gray-800"></i>
+              </button>
+              <span class="w-8 text-center font-medium">{{ item.quantity }}</span>
+              <button 
+                @click="increaseQuantity(item)"
+                class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
+                title="Aumentar quantidade"
+              >
+                <i class="fa-solid fa-circle-plus text-gray-600 hover:text-gray-800"></i>
+              </button>
+            </div>
+
+            <!-- Botão Excluir -->
+            <button 
+              @click="removeFromCart(item)"
+              class="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition-colors"
+              title="Remover item"
+            >
+              <i class="fa-solid fa-circle-xmark text-lg"></i>
+            </button>
+          </div>
+
+          <!-- Total e Botão Finalizar -->
+          <div class="mt-4 pt-4 border-t">
+            <div class="flex justify-between items-center mb-4">
+              <span class="text-gray-600">Total</span>
+              <span class="text-xl font-bold">R$ {{ formatPrice(cartTotal) }}</span>
+            </div>
+            
+            <button 
+              @click="openFinalizationModal"
+              class="w-full bg-emerald-500 text-white py-3 px-4 rounded-lg hover:bg-emerald-600 flex items-center justify-center gap-2"
+              :disabled="cart.length === 0"
+            >
+              <i class="fas fa-check"></i>
+              Finalizar Venda
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -321,6 +329,11 @@ export default {
       return cart.value.reduce((total, item) => total + (item.price * item.quantity), 0)
     })
 
+    // Computed para ordenar produtos por estoque
+    const sortedProducts = computed(() => {
+      return filteredProducts.value.sort((a, b) => b.stock - a.stock)
+    })
+
     // Buscar produtos ao montar o componente
     onMounted(async () => {
       try {
@@ -468,8 +481,20 @@ export default {
       showSaleDetailsModal.value = false
     }
 
-    const printSale = () => {
-      window.print()
+    const printSale = async () => {
+      try {
+        const response = await axios.get(`${'http://127.0.0.1:8000/api'}/sales/${saleDetails.value.id}/pdf`, {
+          responseType: 'blob'
+        });
+        
+        // Criar URL do blob e abrir em nova aba
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        toast.error('Erro ao gerar PDF da venda');
+      }
     }
 
     const handleConfirmSale = async () => {
@@ -558,7 +583,9 @@ export default {
       selectCustomer,
       handleConfirmSale,
       decreaseQuantity,
-      increaseQuantity
+      increaseQuantity,
+      printSale,
+      sortedProducts
     }
   }
 }
