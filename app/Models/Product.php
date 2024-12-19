@@ -8,19 +8,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'name',
         'description',
-        'sku',
         'price',
         'cost_price',
         'stock',
         'min_stock',
-        'unit',
         'category_id',
-        'status'
+        'unit',
+        'status',
+        'sku',
+        'image'
     ];
 
     protected $casts = [

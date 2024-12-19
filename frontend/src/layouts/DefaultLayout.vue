@@ -54,27 +54,39 @@ import Sidebar from '../components/Sidebar.vue'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+
 const showUserMenu = ref(false)
-
+const userName = computed(() => authStore.user?.name || 'Usuário')
 const currentRouteName = computed(() => {
-  const name = route.name
-  if (!name) return ''
-  return name.toString().replace(/([A-Z])/g, ' $1').trim()
+  const routeNames = {
+    'Dashboard': 'Dashboard',
+    'Customers': 'Clientes',
+    'Products': 'Produtos',
+    'Categories': 'Categorias',
+    'PDV': 'PDV',
+    'SalesHistory': 'Histórico de Vendas',
+    'StockEntries': 'Lançamentos de Estoque',
+    'Deliveries': 'Entregas',
+    'LogisticsKanban': 'Kanban de Logística',
+    'Routes': 'Rotas',
+    'Accounts': 'Contas',
+    'Bills': 'Faturas',
+    'Budgets': 'Orçamentos',
+    'Reports': 'Relatórios',
+    'Profile': 'Perfil'
+  }
+  return routeNames[route.name] || route.name
 })
 
-const userName = computed(() => {
-  return authStore.user?.name || 'Usuário'
-})
-
-const toggleUserMenu = () => {
+function toggleUserMenu() {
   showUserMenu.value = !showUserMenu.value
 }
 
-const refreshPage = () => {
+function refreshPage() {
   window.location.reload()
 }
 
-const logout = async () => {
+async function logout() {
   await authStore.logout()
   router.push('/login')
 }

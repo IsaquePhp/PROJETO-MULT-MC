@@ -17,6 +17,7 @@ use Database\Seeders\AdditionalClientsSeeder;
 use Database\Seeders\StoreSeeder;
 use Database\Seeders\CompanySeeder;
 use Database\Seeders\UserSeeder;
+use Database\Seeders\ProductsSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -40,6 +41,7 @@ class DatabaseSeeder extends Seeder
             AdditionalClientsSeeder::class,
             CompanySeeder::class,
             UserSeeder::class,
+            ProductsSeeder::class,
         ]);
     }
 }

@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\ProductImportController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\UploadController;
 
 // Rotas públicas
 Route::post('/login', [AuthController::class, 'login']);
@@ -26,7 +27,11 @@ Route::post('/register', [AuthController::class, 'register']);
 
 // Produtos (rotas públicas temporárias para teste)
 Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/search', [ProductController::class, 'search']);
 Route::get('/products/{product}', [ProductController::class, 'show']);
+Route::post('/products', [ProductController::class, 'store']);
+Route::post('/products/{product}', [ProductController::class, 'update']);
+Route::delete('/products/{product}', [ProductController::class, 'destroy']);
 
 // Clientes (rotas públicas temporárias para teste)
 Route::get('/customers/search', [CustomerController::class, 'search']);
@@ -57,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/categories', [ProductController::class, 'categories']);
         Route::put('/{product}/stock', [ProductController::class, 'updateStock']);
         Route::put('/{product}/toggle-status', [ProductController::class, 'toggleStatus']);
+        Route::patch('/{product}/remove-image', [ProductController::class, 'removeImage']);
 
         // Product Import Routes (Magalu)
         Route::prefix('magalu')->group(function () {
@@ -164,4 +170,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Kanban de Entregas
     Route::get('/orders', [OrderController::class, 'index']);
     Route::put('/orders/{sale}/status', [OrderController::class, 'updateStatus']);
+
+    // Upload de imagens
+    Route::post('/upload/image', [UploadController::class, 'uploadImage']);
 });

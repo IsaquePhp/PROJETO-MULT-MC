@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './router'
 import Toast from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
+import './assets/css/main.css' // Importando os estilos globais
 import './style.css'
 import { clickOutside } from './directives/click-outside'
 import { useAuthStore } from './stores/auth'

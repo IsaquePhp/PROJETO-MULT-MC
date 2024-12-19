@@ -13,44 +13,45 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::query();
+        try {
+            $query = Product::query();
 
-        // Filtro por busca (apenas nome)
-        if ($request->search) {
-            $query->where('name', 'like', "%{$request->search}%");
-        }
+            // Log dos parâmetros recebidos
+            Log::info('Parâmetros de filtro:', $request->all());
 
-        // Filtro por categoria
-        if ($request->category_id) {
-            $query->where('category_id', $request->category_id);
-        }
-
-        // Filtro por status
-        if ($request->status) {
-            $query->where('status', $request->status);
-        }
-
-        // Filtro por estoque
-        if ($request->stock) {
-            switch ($request->stock) {
-                case 'low':
-                    $query->whereColumn('stock', '<=', 'min_stock');
-                    break;
-                case 'out':
-                    $query->where('stock', 0);
-                    break;
-                case 'in':
-                    $query->where('stock', '>', 0);
-                    break;
+            // Filtro por busca (nome ou SKU)
+            if ($request->search) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('sku', 'like', "%{$search}%");
+                });
             }
-        }
 
-        $products = $query->with('category')
-                         ->orderBy('created_at', 'desc')
-                         ->orderBy('id', 'desc')
-                         ->paginate(50);
-        
-        return response()->json($products);
+            // Carregar relacionamentos
+            $query->with('category');
+
+            // Ordenação
+            $query->orderBy('created_at', 'desc');
+
+            // Paginação com todos os resultados
+            $products = $query->get();
+
+            // Log dos resultados
+            Log::info('Total de produtos encontrados: ' . $products->count());
+
+            return response()->json([
+                'success' => true,
+                'data' => $products
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erro ao buscar produtos: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao buscar produtos',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function store(Request $request)
@@ -117,9 +118,33 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         try {
+            // Verificar se o produto existe
+            if (!$product) {
+                return response()->json([
+                    'message' => 'Produto não encontrado'
+                ], 404);
+            }
+
+            // Verificar se o produto pode ser excluído (adicione suas regras de negócio aqui)
+            // Por exemplo, verificar se não está em pedidos pendentes, etc.
+
+            // Log antes da exclusão
+            Log::info('Tentando excluir produto: ' . $product->id);
+
+            // Excluir o produto
             $product->delete();
-            return response()->json(['message' => 'Produto excluído com sucesso']);
+
+            // Log após a exclusão bem-sucedida
+            Log::info('Produto excluído com sucesso: ' . $product->id);
+
+            return response()->json([
+                'message' => 'Produto excluído com sucesso'
+            ]);
         } catch (\Exception $e) {
+            // Log do erro
+            Log::error('Erro ao excluir produto: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
             return response()->json([
                 'message' => 'Erro ao excluir produto',
                 'error' => $e->getMessage()
@@ -137,6 +162,32 @@ class ProductController extends Controller
     {
         $categories = Product::distinct()->pluck('category');
         return response()->json($categories);
+    }
+
+    public function search(Request $request)
+    {
+        try {
+            $query = $request->get('q');
+            
+            if (!$query) {
+                return response()->json([]);
+            }
+
+            $products = Product::where('name', 'like', "%{$query}%")
+                ->orWhere('sku', 'like', "%{$query}%")
+                ->orWhere('description', 'like', "%{$query}%")
+                ->with('category')
+                ->limit(10)
+                ->get();
+
+            return response()->json($products);
+        } catch (\Exception $e) {
+            Log::error('Erro ao buscar produtos: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Erro ao buscar produtos',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function updateStock(Request $request, Product $product)
