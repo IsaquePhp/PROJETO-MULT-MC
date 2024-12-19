@@ -12,25 +12,23 @@ class Sale extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'code',
         'customer_id',
-        'store_id',
-        'customer_name',
-        'customer_document',
-        'payment_method',
-        'installments',
-        'payment_status',
-        'sale_status',
+        'user_id',
         'total',
-        'notes',
-        'paid_at'
+        'status',
+        'processing_start',
+        'ready_at',
+        'delivery_start',
+        'delivered_at',
+        'delivery_address'
     ];
 
     protected $casts = [
-        'total' => 'decimal:2',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'paid_at' => 'datetime'
+        'processing_start' => 'datetime',
+        'ready_at' => 'datetime',
+        'delivery_start' => 'datetime',
+        'delivered_at' => 'datetime',
+        'total' => 'decimal:2'
     ];
 
     protected $with = ['items', 'customer'];

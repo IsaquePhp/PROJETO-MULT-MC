@@ -76,9 +76,15 @@
           </button>
           <div v-show="logisticaOpen" class="submenu">
             <router-link to="/logistics/deliveries" class="flex items-center gap-2 px-4 py-2.5 text-white submenu-item">
+              <ClipboardDocumentListIcon class="w-5 h-5" />
               <span>Entregas</span>
             </router-link>
+            <router-link to="/logistics/kanban" class="flex items-center gap-2 px-4 py-2.5 text-white submenu-item">
+              <ViewColumnsIcon class="w-5 h-5" />
+              <span>Kanban de Entregas</span>
+            </router-link>
             <router-link to="/logistics/routes" class="flex items-center gap-2 px-4 py-2.5 text-white submenu-item">
+              <MapIcon class="w-5 h-5" />
               <span>Rotas</span>
             </router-link>
           </div>
@@ -120,15 +126,15 @@
 
     <!-- User Profile -->
     <div class="p-4 border-t border-white/10 sidebar-bg">
-      <div class="flex items-center">
+      <router-link to="/profile" class="flex items-center space-x-3 text-white hover:bg-white/10 rounded-lg p-2">
         <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white">
           AD
         </div>
-        <div class="ml-3">
-          <p class="text-sm font-medium text-white">Admin</p>
-          <p class="text-xs text-white/70">Administrador</p>
+        <div class="flex-1">
+          <p class="text-sm font-medium">Administrador</p>
+          <p class="text-xs text-white/60">Ver perfil</p>
         </div>
-      </div>
+      </router-link>
     </div>
   </aside>
 </template>
@@ -148,7 +154,10 @@ import {
   ChartBarIcon,
   ChevronDownIcon,
   DocumentPlusIcon,
-  ShoppingCartIcon
+  ShoppingCartIcon,
+  ViewColumnsIcon,
+  ClipboardDocumentListIcon,
+  MapIcon
 } from '@heroicons/vue/24/outline'
 
 const estoqueOpen = ref(false)

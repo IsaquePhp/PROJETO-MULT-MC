@@ -1,398 +1,282 @@
 <template>
-  <div class="dashboard p-6">
-    <!-- Cabeçalho com Filtros -->
+  <div class="dashboard p-6 bg-gray-50">
+    <!-- Cabeçalho -->
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
       
       <div class="flex items-center gap-4">
-        <div class="flex items-center">
-          <span class="text-sm text-gray-500 mr-2">De:</span>
-          <input 
-            type="date" 
-            v-model="filters.startDate" 
-            @change="loadDashboardData" 
-            class="date-filter"
-          >
-        </div>
-        <div class="flex items-center">
-          <span class="text-sm text-gray-500 mr-2">Até:</span>
-          <input 
-            type="date" 
-            v-model="filters.endDate" 
-            @change="loadDashboardData" 
-            class="date-filter"
-          >
-        </div>
-        <button 
-          @click="loadDashboardData" 
-          :disabled="loading"
-          class="filter-button"
-        >
-          <span v-if="loading">Carregando...</span>
-          <span v-else>Filtrar</span>
-        </button>
+        <select v-model="period" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm">
+          <option value="today">Hoje</option>
+          <option value="week">Última Semana</option>
+          <option value="month">Último Mês</option>
+          <option value="year">Último Ano</option>
+        </select>
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="flex justify-center items-center h-64">
-      <div class="loading-spinner"></div>
-    </div>
-
-    <div v-else>
-      <!-- Cards de Métricas -->
-      <div class="grid grid-cols-1 gap-6 mb-6 sm:grid-cols-2 lg:grid-cols-4">
-        <!-- Total de Vendas -->
-        <div class="metric-card">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-gray-500">Total de Vendas</h3>
-            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- Cards de Métricas -->
+    <div class="grid grid-cols-1 gap-6 mb-6 sm:grid-cols-2 lg:grid-cols-4">
+      <!-- Total de Vendas -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-medium text-gray-500">Total de Vendas</h3>
+          <div class="p-2 bg-blue-50 rounded-lg">
+            <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
           </div>
-          <div class="flex items-baseline">
-            <p class="text-2xl font-semibold text-gray-900">{{ metrics.current.totalSales }}</p>
-            <p class="ml-2 text-sm font-medium" :class="metrics.growth.sales >= 0 ? 'text-green-600' : 'text-red-600'">
-              <span>{{ metrics.growth.sales >= 0 ? '+' : '' }}{{ metrics.growth.sales }}%</span>
-            </p>
-          </div>
         </div>
+        <div class="flex items-baseline">
+          <p class="text-2xl font-bold text-gray-900">2.457</p>
+          <p class="ml-2 text-sm font-medium text-green-600">
+            <span>+12.5%</span>
+          </p>
+        </div>
+      </div>
 
-        <!-- Receita Total -->
-        <div class="metric-card">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-gray-500">Receita Total</h3>
-            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Receita Total -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-medium text-gray-500">Receita Total</h3>
+          <div class="p-2 bg-green-50 rounded-lg">
+            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <div class="flex items-baseline">
-            <p class="text-2xl font-semibold text-gray-900">{{ formatPrice(metrics.current.totalRevenue) }}</p>
-            <p class="ml-2 text-sm font-medium" :class="metrics.growth.revenue >= 0 ? 'text-green-600' : 'text-red-600'">
-              <span>{{ metrics.growth.revenue >= 0 ? '+' : '' }}{{ metrics.growth.revenue }}%</span>
-            </p>
-          </div>
         </div>
+        <div class="flex items-baseline">
+          <p class="text-2xl font-bold text-gray-900">R$ 156.789,00</p>
+          <p class="ml-2 text-sm font-medium text-green-600">
+            <span>+8.2%</span>
+          </p>
+        </div>
+      </div>
 
-        <!-- Ticket Médio -->
-        <div class="metric-card">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-gray-500">Ticket Médio</h3>
-            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Ticket Médio -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-medium text-gray-500">Ticket Médio</h3>
+          <div class="p-2 bg-purple-50 rounded-lg">
+            <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v4m-6-4v4m6-11v-4m-6 4v-4" />
             </svg>
           </div>
-          <div class="flex items-baseline">
-            <p class="text-2xl font-semibold text-gray-900">{{ formatPrice(metrics.current.averageTicket) }}</p>
-            <p class="ml-2 text-sm font-medium" :class="metrics.growth.averageTicket >= 0 ? 'text-green-600' : 'text-red-600'">
-              <span>{{ metrics.growth.averageTicket >= 0 ? '+' : '' }}{{ metrics.growth.averageTicket }}%</span>
-            </p>
-          </div>
         </div>
+        <div class="flex items-baseline">
+          <p class="text-2xl font-bold text-gray-900">R$ 63,81</p>
+          <p class="ml-2 text-sm font-medium text-red-600">
+            <span>-2.4%</span>
+          </p>
+        </div>
+      </div>
 
-        <!-- Média Diária -->
-        <div class="metric-card">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-gray-500">Média Diária</h3>
-            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Produtos Vendidos -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-medium text-gray-500">Produtos Vendidos</h3>
+          <div class="p-2 bg-orange-50 rounded-lg">
+            <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <div class="flex items-baseline">
-            <p class="text-2xl font-semibold text-gray-900">{{ Math.round(metrics.current.averageDailySales) }}</p>
-            <p class="ml-2 text-sm text-gray-500">vendas/dia</p>
+        </div>
+        <div class="flex items-baseline">
+          <p class="text-2xl font-bold text-gray-900">3.849</p>
+          <p class="ml-2 text-sm font-medium text-green-600">
+            <span>+5.7%</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráficos e Tabelas -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <!-- Gráfico de Vendas -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Vendas por Período</h3>
+        <div class="h-80 bg-gray-50 rounded-lg flex items-center justify-center">
+          <!-- Placeholder para o gráfico -->
+          <div class="w-full h-full p-4">
+            <div class="relative h-full">
+              <!-- Barras do gráfico (simuladas) -->
+              <div class="absolute bottom-0 left-0 w-full h-full flex items-end justify-between px-2">
+                <div class="w-8 bg-blue-500 rounded-t-lg" style="height: 60%"></div>
+                <div class="w-8 bg-blue-500 rounded-t-lg" style="height: 75%"></div>
+                <div class="w-8 bg-blue-500 rounded-t-lg" style="height: 45%"></div>
+                <div class="w-8 bg-blue-500 rounded-t-lg" style="height: 90%"></div>
+                <div class="w-8 bg-blue-500 rounded-t-lg" style="height: 65%"></div>
+                <div class="w-8 bg-blue-500 rounded-t-lg" style="height: 80%"></div>
+                <div class="w-8 bg-blue-500 rounded-t-lg" style="height: 70%"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Gráficos -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <!-- Gráfico de Vendas -->
-        <div class="chart-container">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Vendas por Dia</h3>
-          <canvas ref="salesChart"></canvas>
-        </div>
-
-        <!-- Gráfico de Status -->
-        <div class="chart-container">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Vendas por Status</h3>
-          <canvas ref="statusChart"></canvas>
+      <!-- Top Produtos -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <h3 class="text-lg font-medium text-gray-900 p-6 border-b">Produtos Mais Vendidos</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendas</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receita</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="h-10 w-10 flex-shrink-0">
+                      <div class="h-10 w-10 rounded-lg bg-gray-100"></div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">iPhone 13 Pro</div>
+                      <div class="text-sm text-gray-500">Smartphones</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">324</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">R$ 45.890,00</div>
+                </td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="h-10 w-10 flex-shrink-0">
+                      <div class="h-10 w-10 rounded-lg bg-gray-100"></div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">MacBook Pro</div>
+                      <div class="text-sm text-gray-500">Notebooks</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">256</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">R$ 38.750,00</div>
+                </td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="h-10 w-10 flex-shrink-0">
+                      <div class="h-10 w-10 rounded-lg bg-gray-100"></div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">AirPods Pro</div>
+                      <div class="text-sm text-gray-500">Acessórios</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">198</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">R$ 23.460,00</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
+    </div>
 
-      <!-- Rankings -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Top Produtos -->
-        <div class="table-container">
-          <h3 class="text-lg font-medium text-gray-900 p-6 border-b">Produtos Mais Vendidos</h3>
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="table-header">Produto</th>
-                  <th class="table-header text-right">Quantidade</th>
-                  <th class="table-header text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="product in charts.topProducts" :key="product.name">
-                  <td class="table-cell">{{ product.name }}</td>
-                  <td class="table-cell text-right">{{ product.total_quantity }}</td>
-                  <td class="table-cell text-right">{{ formatPrice(product.total_revenue) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Top Clientes -->
-        <div class="table-container">
-          <h3 class="text-lg font-medium text-gray-900 p-6 border-b">Melhores Clientes</h3>
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="table-header">Cliente</th>
-                  <th class="table-header text-right">Compras</th>
-                  <th class="table-header text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="client in charts.topClients" :key="client.name">
-                  <td class="table-cell">{{ client.name }}</td>
-                  <td class="table-cell text-right">{{ client.total_purchases }}</td>
-                  <td class="table-cell text-right">{{ formatPrice(client.total_spent) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <!-- Últimas Vendas -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+      <h3 class="text-lg font-medium text-gray-900 p-6 border-b">Últimas Vendas</h3>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produtos</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">JD</div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">João da Silva</div>
+                    <div class="text-sm text-gray-500">joao@email.com</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">iPhone 13 Pro, AirPods Pro</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">R$ 8.990,00</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  Concluído
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                19/12/2023 14:30
+              </td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">MS</div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">Maria Santos</div>
+                    <div class="text-sm text-gray-500">maria@email.com</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">MacBook Pro</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">R$ 12.490,00</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                  Em Processamento
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                19/12/2023 13:45
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
-import Chart from 'chart.js/auto'
-import { format, subDays } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { ref } from 'vue'
 
 export default {
-  name: 'Dashboard',
   setup() {
-    const loading = ref(false)
-    const salesChart = ref(null)
-    const statusChart = ref(null)
-    let salesChartInstance = null
-    let statusChartInstance = null
-
-    const filters = ref({
-      startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
-      endDate: format(new Date(), 'yyyy-MM-dd')
-    })
-
-    const metrics = ref({
-      current: {
-        totalSales: 0,
-        totalRevenue: 0,
-        averageTicket: 0,
-        averageDailySales: 0
-      },
-      growth: {
-        sales: 0,
-        revenue: 0,
-        averageTicket: 0
-      }
-    })
-
-    const charts = ref({
-      salesByDay: [],
-      salesByStatus: [],
-      topProducts: [],
-      topClients: []
-    })
-
-    const loadDashboardData = async () => {
-      try {
-        loading.value = true
-        const response = await axios.get('/api/dashboard', {
-          params: {
-            start_date: filters.value.startDate,
-            end_date: filters.value.endDate
-          }
-        })
-
-        const { data } = response.data
-        
-        // Atualizar métricas
-        metrics.value = data.metrics
-        charts.value = data.charts
-
-        // Atualizar gráficos
-        updateCharts()
-      } catch (error) {
-        console.error('Erro ao carregar dados do dashboard:', error)
-      } finally {
-        loading.value = false
-      }
-    }
-
-    const updateCharts = () => {
-      // Destruir instâncias anteriores dos gráficos
-      if (salesChartInstance) salesChartInstance.destroy()
-      if (statusChartInstance) statusChartInstance.destroy()
-
-      // Gráfico de vendas por dia
-      const salesCtx = salesChart.value.getContext('2d')
-      salesChartInstance = new Chart(salesCtx, {
-        type: 'line',
-        data: {
-          labels: charts.value.salesByDay.map(item => 
-            format(new Date(item.date), 'dd/MM', { locale: ptBR })
-          ),
-          datasets: [{
-            label: 'Vendas',
-            data: charts.value.salesByDay.map(item => item.total_sales),
-            borderColor: '#4F46E5',
-            backgroundColor: 'rgba(79, 70, 229, 0.1)',
-            tension: 0.4,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const value = context.raw
-                  return `Vendas: ${value}`
-                }
-              }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                stepSize: 1
-              }
-            }
-          }
-        }
-      })
-
-      // Gráfico de vendas por status
-      const statusCtx = statusChart.value.getContext('2d')
-      const statusColors = {
-        'pending': '#F59E0B',    // Amber
-        'completed': '#10B981',  // Emerald
-        'cancelled': '#EF4444',  // Red
-        'processing': '#4F46E5', // Indigo
-        'shipped': '#6B7280'     // Gray
-      }
-
-      statusChartInstance = new Chart(statusCtx, {
-        type: 'doughnut',
-        data: {
-          labels: charts.value.salesByStatus.map(item => {
-            const statusLabels = {
-              'pending': 'Pendente',
-              'completed': 'Concluída',
-              'cancelled': 'Cancelada',
-              'processing': 'Em Processamento',
-              'shipped': 'Enviada'
-            }
-            return statusLabels[item.sale_status] || item.sale_status
-          }),
-          datasets: [{
-            data: charts.value.salesByStatus.map(item => item.total),
-            backgroundColor: charts.value.salesByStatus.map(item => statusColors[item.sale_status] || '#6B7280')
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom'
-            }
-          }
-        }
-      })
-    }
-
-    const formatPrice = (value) => {
-      return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      }).format(value)
-    }
-
-    onMounted(() => {
-      loadDashboardData()
-    })
+    const period = ref('month')
 
     return {
-      loading,
-      filters,
-      metrics,
-      charts,
-      salesChart,
-      statusChart,
-      loadDashboardData,
-      formatPrice
+      period
     }
   }
 }
 </script>
 
-<style>
+<style scoped>
 .dashboard {
-  @apply bg-gray-100 min-h-screen;
-}
-
-.metric-card {
-  @apply bg-white rounded-lg shadow p-6;
-  transition: transform 0.2s ease-in-out;
-}
-
-.metric-card:hover {
-  transform: translateY(-2px);
-}
-
-.chart-container {
-  @apply bg-white rounded-lg shadow p-6;
-  height: 400px;
-}
-
-.table-container {
-  @apply bg-white rounded-lg shadow overflow-hidden;
-}
-
-.table-header {
-  @apply bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
-}
-
-.table-cell {
-  @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
-}
-
-.loading-spinner {
-  @apply animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600;
-}
-
-.date-filter {
-  @apply px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500;
-}
-
-.filter-button {
-  @apply px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50;
+  min-height: calc(100vh - 64px);
 }
 </style>

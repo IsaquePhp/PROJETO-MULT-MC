@@ -80,6 +80,9 @@
               <thead>
                 <tr>
                   <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Imagem
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Nome
                   </th>
                   <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
@@ -104,6 +107,17 @@
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr v-for="product in products" :key="product.id" class="hover:bg-gray-50">
+                  <td class="px-4 py-2 whitespace-nowrap">
+                    <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
+                      <img 
+                        v-if="product.image" 
+                        :src="product.image" 
+                        :alt="product.name"
+                        class="w-full h-full object-cover"
+                      />
+                      <div v-else class="text-2xl text-gray-400">📦</div>
+                    </div>
+                  </td>
                   <td class="px-4 py-2 whitespace-nowrap">
                     <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
                   </td>

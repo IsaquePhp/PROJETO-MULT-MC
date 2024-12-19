@@ -43,53 +43,75 @@
       <!-- Tabela -->
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+          <thead>
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cidade</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Avatar
+              </th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Nome
+              </th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Email
+              </th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                CPF/CNPJ
+              </th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Tipo
+              </th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Ações
+              </th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="client in clients" :key="client.id">
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{{ client.id }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ client.name }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.email }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.phone }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ client.city }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
+            <tr v-for="client in clients" :key="client.id" class="hover:bg-gray-50">
+              <td class="px-4 py-2 whitespace-nowrap">
+                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                  <img 
+                    v-if="client.image" 
+                    :src="client.image" 
+                    :alt="client.name"
+                    class="w-full h-full object-cover"
+                  />
+                  <div v-else class="text-xl text-gray-400">👤</div>
+                </div>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">{{ client.name }}</div>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                <div class="text-sm text-gray-500">{{ client.email }}</div>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                <div class="text-sm text-gray-500">{{ client.cpf_cnpj }}</div>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                <div class="text-sm text-gray-500">{{ client.type }}</div>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
                 <span 
-                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                  :class="{
-                    'bg-green-100 text-green-800': client.active,
-                    'bg-red-100 text-red-800': !client.active
-                  }"
+                  :class="[
+                    'px-2 inline-flex text-xs leading-5 font-semibold rounded-full',
+                    client.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  ]"
                 >
                   {{ client.active ? 'Ativo' : 'Inativo' }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td class="px-4 py-2 whitespace-nowrap text-sm font-medium space-x-2">
                 <button 
                   @click="editClient(client)"
-                  class="text-indigo-600 hover:text-indigo-900 mr-2"
+                  class="text-blue-600 hover:text-blue-900"
                 >
                   Editar
                 </button>
                 <button 
-                  @click="toggleClientStatus(client)"
-                  :class="{
-                    'text-red-600 hover:text-red-900': client.active,
-                    'text-green-600 hover:text-green-900': !client.active
-                  }"
-                >
-                  {{ client.active ? 'Desativar' : 'Ativar' }}
-                </button>
-                <button 
-                  @click="deleteClient(client)"
+                  @click="deleteClient(client.id)"
                   class="text-red-600 hover:text-red-900"
                 >
                   Excluir
@@ -117,6 +139,34 @@
         </div>
 
         <form @submit.prevent="submitClient" class="space-y-4">
+          <!-- Upload de Imagem -->
+          <div class="flex items-center space-x-6">
+            <div class="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+              <img 
+                v-if="previewImage"
+                :src="previewImage"
+                class="w-full h-full object-cover"
+              />
+              <div v-else class="text-4xl text-gray-400">👤</div>
+            </div>
+            <div class="flex-1">
+              <label class="form-label">Foto do Cliente</label>
+              <input
+                type="file"
+                @change="handleImageUpload"
+                accept="image/*"
+                class="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-full file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+              />
+              <p class="mt-1 text-sm text-gray-500">
+                PNG, JPG ou GIF até 2MB
+              </p>
+            </div>
+          </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">Nome</label>
@@ -265,10 +315,33 @@ const clientForm = ref({
   postal_code: ''
 })
 
+// Estado para imagem
+const previewImage = ref('')
+const imageFile = ref(null)
+
 // Estado para o modal de confirmação
 const showDeleteConfirmModal = ref(false)
 const deleteConfirmMessage = ref('')
 const clientToDelete = ref(null)
+
+// Método para manipular upload de imagem
+const handleImageUpload = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    if (file.size > 2 * 1024 * 1024) {
+      console.error('A imagem deve ter no máximo 2MB')
+      event.target.value = ''
+      return
+    }
+
+    imageFile.value = file
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      previewImage.value = e.target.result
+    }
+    reader.readAsDataURL(file)
+  }
+}
 
 // Fetch clients from API
 const fetchClients = async () => {
@@ -298,6 +371,8 @@ const openNewClientModal = () => {
     state: '',
     postal_code: ''
   }
+  previewImage.value = ''
+  imageFile.value = null
   showModal.value = true
 }
 
@@ -314,6 +389,7 @@ const editClient = (client) => {
     state: client.state,
     postal_code: client.postal_code
   }
+  previewImage.value = client.image || ''
   showModal.value = true
 }
 
@@ -366,17 +442,49 @@ const closeModal = () => {
     state: '',
     postal_code: ''
   }
+  previewImage.value = ''
+  imageFile.value = null
 }
 
 // Submit client form
 const submitClient = async () => {
   try {
+    const formData = new FormData()
+    
+    // Dados básicos do cliente
+    const clientData = {
+      name: clientForm.value.name,
+      email: clientForm.value.email,
+      phone: clientForm.value.phone,
+      cpf: clientForm.value.cpf,
+      address: clientForm.value.address,
+      city: clientForm.value.city,
+      state: clientForm.value.state,
+      postal_code: clientForm.value.postal_code
+    }
+
+    // Adicionar dados ao FormData
+    formData.append('data', JSON.stringify(clientData))
+    
+    // Adicionar imagem se houver
+    if (imageFile.value) {
+      formData.append('image', imageFile.value)
+    }
+
     if (selectedClient.value) {
       // Update existing client
-      await axios.put(`/clients/${selectedClient.value.id}`, clientForm.value)
+      await axios.put(`/clients/${selectedClient.value.id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
     } else {
       // Create new client
-      await axios.post('/clients', clientForm.value)
+      await axios.post('/clients', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
     }
     
     await fetchClients() // Refresh the list

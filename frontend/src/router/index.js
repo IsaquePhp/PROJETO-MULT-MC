@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
 // Views
@@ -10,23 +10,30 @@ import Customers from '../views/Customers.vue'
 import Categories from '../views/Categories.vue'
 import Clients from '../views/Clients.vue'
 import Sales from '../views/Sales.vue'
-import Inventory from '../views/Inventory.vue'
-import Deliveries from '../views/Logistics/Deliveries.vue'
-import Returns from '../views/Logistics/Returns.vue'
-import Pagamentos from '../views/Financial/Pagamentos.vue'
-import FluxoCaixa from '../views/Financial/FluxoCaixa.vue'
-import CentroCustos from '../views/Financial/CentroCustos.vue'
-import Lancamentos from '../views/Financial/Lancamentos.vue'
-import Budgets from '../views/Budgets.vue'
-import Reports from '../views/Reports.vue'
 import Products from '../views/Products.vue'
 import SalesList from '../views/SalesList.vue'
+import Profile from '../views/Profile.vue'
+import OrderKanban from '../views/OrderKanban.vue'
+import DefaultLayout from '../layouts/DefaultLayout.vue'
+
+// Logistics Views
+import Deliveries from '../views/Logistics/Deliveries.vue'
+import Routes from '../views/Logistics/Routes.vue'
+
+// Inventory Views
+import StockEntries from '../views/Inventory/StockEntries.vue'
+
+// Financial Views
+import Accounts from '../views/Financial/Accounts.vue'
+import Bills from '../views/Financial/Bills.vue'
+
+// Reports View
+import Reports from '../views/Reports.vue'
+
+// Budgets View
+import Budgets from '../views/Budgets.vue'
 
 const routes = [
-  {
-    path: '/',
-    redirect: '/dashboard'
-  },
   {
     path: '/login',
     name: 'Login',
@@ -46,154 +53,136 @@ const routes = [
     meta: { requiresGuest: true }
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: Dashboard,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/customers',
-    name: 'Customers',
-    component: Customers,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/categories',
-    name: 'Categories',
-    component: Categories,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/clients',
-    name: 'Clients',
-    component: Clients,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/sales',
-    name: 'Sales',
-    component: Sales,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/sales-history',
-    name: 'SalesHistory',
-    component: SalesList,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/inventory',
-    component: () => import('../views/Inventory/Layout.vue'),
-    meta: { requiresAuth: true },
+    path: '/',
+    component: DefaultLayout,
     children: [
       {
         path: '',
-        name: 'inventory',
-        component: () => import('../views/Inventory/Index.vue')
+        redirect: '/dashboard'
       },
       {
-        path: 'entries',
-        name: 'stock-entries',
-        component: () => import('../views/Inventory/StockEntries.vue')
+        path: '/dashboard',
+        name: 'Dashboard',
+        component: Dashboard,
+        meta: { requiresAuth: true }
       },
       {
-        path: 'entries/new',
-        name: 'new-stock-entry',
-        component: () => import('../views/Inventory/StockEntry.vue')
+        path: '/customers',
+        name: 'Customers',
+        component: Customers,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/categories',
+        name: 'Categories',
+        component: Categories,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/clients',
+        name: 'Clients',
+        component: Clients,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/sales',
+        name: 'Sales',
+        component: Sales,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/pdv',
+        name: 'PDV',
+        component: Sales,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/sales-history',
+        name: 'SalesHistory',
+        component: SalesList,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/products',
+        name: 'Products',
+        component: Products,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/profile',
+        name: 'Profile',
+        component: Profile,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/logistics/kanban',
+        name: 'OrderKanban',
+        component: OrderKanban,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/logistics/deliveries',
+        name: 'Deliveries',
+        component: Deliveries,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/logistics/routes',
+        name: 'Routes',
+        component: Routes,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/inventory/entries',
+        name: 'StockEntries',
+        component: StockEntries,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/financial/accounts',
+        name: 'Accounts',
+        component: Accounts,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/financial/bills',
+        name: 'Bills',
+        component: Bills,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/reports',
+        name: 'Reports',
+        component: Reports,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/budgets',
+        name: 'Budgets',
+        component: Budgets,
+        meta: { requiresAuth: true }
       }
     ]
-  },
-  {
-    path: '/lancamentos',
-    name: 'Lancamentos',
-    component: Lancamentos,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/financial',
-    name: 'Financial',
-    meta: { requiresAuth: true },
-    children: [
-      {
-        path: 'pagamentos',
-        name: 'Pagamentos',
-        component: Pagamentos
-      },
-      {
-        path: 'fluxo-caixa',
-        name: 'FluxoCaixa',
-        component: FluxoCaixa
-      },
-      {
-        path: 'centro-custos',
-        name: 'CentroCustos',
-        component: CentroCustos
-      }
-    ]
-  },
-  {
-    path: '/logistics',
-    name: 'Logistics',
-    meta: { requiresAuth: true },
-    children: [
-      {
-        path: 'entregas',
-        name: 'deliveries',
-        component: () => import('../views/Logistics/Deliveries.vue')
-      },
-      {
-        path: 'devolucoes',
-        name: 'returns',
-        component: () => import('../views/Logistics/Returns.vue')
-      }
-    ]
-  },
-  {
-    path: '/budgets',
-    name: 'Budgets',
-    component: Budgets,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/reports',
-    name: 'Reports',
-    component: Reports,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/products',
-    name: 'Products',
-    component: () => import('../views/Products.vue'),
-    meta: { requiresAuth: true }
   }
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes
 })
 
-router.beforeEach(async (to, from, next) => {
+// Navigation guard
+router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
+  const isAuthenticated = authStore.isAuthenticated
 
-  // Se a rota não requer autenticação nem é para visitantes, permite
-  if (!requiresAuth && !requiresGuest) {
-    return next()
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next('/login')
+  } else if (to.meta.requiresGuest && isAuthenticated) {
+    next('/')
+  } else {
+    next()
   }
-
-  // Verifica autenticação
-  const isAuthenticated = await authStore.checkAuth()
-
-  // Redireciona com base nas regras de autenticação
-  if (requiresAuth && !isAuthenticated) {
-    return next('/login')
-  } else if (requiresGuest && isAuthenticated) {
-    return next('/dashboard')
-  }
-
-  next()
 })
 
 export default router

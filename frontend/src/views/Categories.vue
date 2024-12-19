@@ -79,7 +79,7 @@
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
               <input
                 type="checkbox"
                 :checked="selectedCategories.length === filteredCategories.length"
@@ -88,15 +88,26 @@
                 class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
               >
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Imagem
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Nome
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Descrição
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Status
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Ações
+            </th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           <tr v-for="category in filteredCategories" :key="category.id" class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap w-8">
+            <td class="px-4 py-2 whitespace-nowrap w-8">
               <input
                 type="checkbox"
                 :checked="selectedCategories.includes(category.id)"
@@ -104,18 +115,27 @@
                 class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
               >
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="flex items-center">
-                <div class="text-sm font-medium text-gray-900">{{ category.name }}</div>
-                <span v-if="isNewCategory(category)" class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                  Novo
-                </span>
+            <td class="px-4 py-2 whitespace-nowrap">
+              <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
+                <img 
+                  v-if="category.image" 
+                  :src="category.image" 
+                  :alt="category.name"
+                  class="w-full h-full object-cover"
+                />
+                <div v-else class="text-2xl text-gray-400">🗂️</div>
               </div>
             </td>
-            <td class="px-6 py-4">
+            <td class="px-4 py-2 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">{{ category.name }}</div>
+              <span v-if="isNewCategory(category)" class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                Novo
+              </span>
+            </td>
+            <td class="px-4 py-2">
               <div class="text-sm text-gray-500">{{ category.description || '-' }}</div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="px-4 py-2 whitespace-nowrap">
               <span 
                 :class="[
                   'px-2 inline-flex text-xs leading-5 font-semibold rounded-full',
@@ -127,7 +147,7 @@
                 {{ category.active ? 'Ativo' : 'Inativo' }}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+            <td class="px-4 py-2 whitespace-nowrap text-sm font-medium space-x-3">
               <button 
                 @click="editCategory(category)"
                 class="text-indigo-600 hover:text-indigo-900"
@@ -195,6 +215,35 @@
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               ></textarea>
             </div>
+
+            <!-- Upload de Imagem -->
+            <div class="flex items-center space-x-6">
+              <div class="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
+                <img 
+                  v-if="previewImage"
+                  :src="previewImage"
+                  class="w-full h-full object-cover"
+                />
+                <div v-else class="text-4xl text-gray-400">🗂️</div>
+              </div>
+              <div class="flex-1">
+                <label class="form-label">Imagem da Categoria</label>
+                <input
+                  type="file"
+                  @change="handleImageUpload"
+                  accept="image/*"
+                  class="block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100"
+                />
+                <p class="mt-1 text-sm text-gray-500">
+                  PNG, JPG ou GIF até 2MB
+                </p>
+              </div>
+            </div>
           </div>
 
           <div class="mt-6 flex justify-end space-x-3">
@@ -238,6 +287,9 @@ const form = ref({
   description: ''
 })
 
+const previewImage = ref('')
+const imageFile = ref(null)
+
 // Computed
 const filteredCategories = computed(() => {
   if (!searchQuery.value) return categories.value
@@ -278,6 +330,8 @@ function openNewCategoryModal() {
     name: '',
     description: ''
   }
+  previewImage.value = ''
+  imageFile.value = null
   showModal.value = true
 }
 
@@ -288,6 +342,8 @@ function editCategory(category) {
     name: category.name,
     description: category.description || ''
   }
+  previewImage.value = category.image || ''
+  imageFile.value = null
   showModal.value = true
 }
 
@@ -369,6 +425,8 @@ function closeModal() {
     name: '',
     description: ''
   }
+  previewImage.value = ''
+  imageFile.value = null
 }
 
 // Enviar formulário
@@ -377,14 +435,38 @@ async function submitCategory() {
   error.value = null
   
   try {
-    if (selectedCategory.value) {
-      await axios.put(`/categories/${selectedCategory.value.id}`, form.value)
-      successMessage.value = 'Categoria atualizada com sucesso'
-    } else {
-      await axios.post('/categories', form.value)
-      successMessage.value = 'Categoria criada com sucesso'
-    }
+    const formData = new FormData()
     
+    // Dados básicos da categoria
+    const categoryData = {
+      name: form.value.name,
+      description: form.value.description,
+    }
+
+    // Adicionar dados ao FormData
+    formData.append('data', JSON.stringify(categoryData))
+    
+    // Adicionar imagem se houver
+    if (imageFile.value) {
+      formData.append('image', imageFile.value)
+    }
+
+    const url = selectedCategory.value 
+      ? `/categories/${selectedCategory.value.id}`
+      : '/categories'
+
+    const method = selectedCategory.value ? 'put' : 'post'
+    
+    await axios({
+      method,
+      url,
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    successMessage.value = selectedCategory.value ? 'Categoria atualizada com sucesso' : 'Categoria criada com sucesso'
     await fetchCategories()
     closeModal()
     
@@ -395,6 +477,25 @@ async function submitCategory() {
     error.value = err.response?.data?.message || 'Erro ao salvar categoria'
   } finally {
     loading.value = false
+  }
+}
+
+// Método para manipular upload de imagem
+function handleImageUpload(event) {
+  const file = event.target.files[0]
+  if (file) {
+    if (file.size > 2 * 1024 * 1024) {
+      alert('A imagem deve ter no máximo 2MB')
+      event.target.value = ''
+      return
+    }
+
+    imageFile.value = file
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      previewImage.value = e.target.result
+    }
+    reader.readAsDataURL(file)
   }
 }
 

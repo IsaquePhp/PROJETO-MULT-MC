@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductImportController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\OrderController;
 
 // Rotas públicas
 Route::post('/login', [AuthController::class, 'login']);
@@ -159,4 +160,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{cashFlow}', [CashFlowController::class, 'update']);
         Route::delete('/{cashFlow}', [CashFlowController::class, 'destroy']);
     });
+
+    // Kanban de Entregas
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::put('/orders/{sale}/status', [OrderController::class, 'updateStatus']);
 });
