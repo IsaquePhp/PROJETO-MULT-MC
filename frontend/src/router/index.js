@@ -83,9 +83,25 @@ const routes = [
   },
   {
     path: '/inventory',
-    name: 'Inventory',
-    component: Inventory,
-    meta: { requiresAuth: true }
+    component: () => import('../views/Inventory/Layout.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'inventory',
+        component: () => import('../views/Inventory/Index.vue')
+      },
+      {
+        path: 'entries',
+        name: 'stock-entries',
+        component: () => import('../views/Inventory/StockEntries.vue')
+      },
+      {
+        path: 'entries/new',
+        name: 'new-stock-entry',
+        component: () => import('../views/Inventory/StockEntry.vue')
+      }
+    ]
   },
   {
     path: '/lancamentos',

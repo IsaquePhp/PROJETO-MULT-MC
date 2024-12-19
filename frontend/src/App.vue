@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen w-screen overflow-hidden">
+  <div class="font-inter flex h-screen w-screen overflow-hidden">
     <!-- Sidebar (apenas para rotas autenticadas) -->
     <Sidebar v-if="showSidebar" />
 
@@ -40,11 +40,18 @@ const showSidebar = computed(() => {
 </script>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 /* Reset CSS para garantir que não haja margens ou padding indesejados */
+:root {
+  font-family: 'Inter', sans-serif;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
 }
 
 body {
