@@ -29,6 +29,20 @@ class CustomerSeeder extends Seeder
         // Array com dados dos clientes para teste
         $customers = [
             [
+                'name' => 'Cliente Teste',
+                'email' => 'cliente.teste@email.com',
+                'phone' => '11988888888',
+                'cpf_cnpj' => '123.456.789-01',
+                'type' => 'individual',
+                'status' => 'active',
+                'address' => 'Rua das Flores, 123',
+                'city' => 'São Paulo',
+                'state' => 'SP',
+                'zip_code' => '01234-567',
+                'credit_limit' => 1000.00,
+                'company_id' => $company->id
+            ],
+            [
                 'name' => 'João Silva',
                 'email' => 'joao.silva@email.com',
                 'phone' => '(11) 98765-4321',

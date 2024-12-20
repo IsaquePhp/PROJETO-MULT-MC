@@ -4,7 +4,7 @@ import router from '../router'
 
 // Configuração base do axios
 const instance = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: 'http://localhost/API LOJA MC - Copy/public/api',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -31,16 +31,11 @@ instance.interceptors.response.use(
   (response) => {
     return response
   },
-  async (error) => {
-    if (error.response && error.response.status === 401) {
-      const currentPath = router.currentRoute.value.path
-      
-      // Apenas faz logout se não estiver na página de login
-      if (currentPath !== '/login') {
-        const authStore = useAuthStore()
-        await authStore.logout()
-        router.push('/login')
-      }
+  (error) => {
+    if (error.response?.status === 401) {
+      const authStore = useAuthStore()
+      authStore.logout()
+      router.push('/login')
     }
     return Promise.reject(error)
   }

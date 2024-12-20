@@ -1,153 +1,139 @@
 <template>
-  <div class="p-6">
-    <!-- Título e Subtítulo -->
-    <div class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">PDV</h2>
-      <p class="text-sm text-gray-600">Registre vendas e gerencie o caixa</p>
-    </div>
+  <div class="container mx-auto p-4">
+    <!-- Grid de Produtos -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Coluna 1 e 2: Lista de Produtos -->
+      <div class="md:col-span-2 bg-white rounded-lg shadow p-4">
+        <h2 class="text-xl font-bold mb-4">Produtos</h2>
 
-    <div class="grid grid-cols-12 gap-6">
-      <!-- Coluna Esquerda - Produtos -->
-      <div class="col-span-8">
-        <div class="bg-white rounded-lg shadow p-6">
-          <!-- Busca de Produtos -->
-          <div class="mb-6">
-            <div class="relative">
-              <input
-                v-model="productSearch"
-                type="text"
-                placeholder="Buscar produtos..."
-                class="w-full h-[45px] pl-10 pr-4 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                @input="searchProducts"
-              />
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-3 top-[10px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
+        <!-- Busca -->
+        <div class="mb-4">
+          <input
+            type="text"
+            v-model="productSearch"
+            @input="searchProducts"
+            placeholder="Buscar produtos..."
+            class="w-full p-2 border rounded-lg"
+          />
+        </div>
 
-            <!-- Resultados da Busca -->
-            <div v-if="showProductResults && filteredProducts.length > 0" class="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-64 overflow-y-auto">
-              <div v-for="product in filteredProducts" :key="product.id" @click="addToCart(product)" class="p-3 hover:bg-gray-50 cursor-pointer flex items-center space-x-3">
-                <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <img v-if="product.image" :src="product.image" class="w-full h-full object-cover rounded-lg" />
-                  <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <div class="font-medium text-gray-900">{{ product.name }}</div>
-                  <div class="text-sm text-gray-500">R$ {{ formatPrice(product.price) }}</div>
-                </div>
-              </div>
+        <!-- Grid de Produtos -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div v-for="product in filteredProducts" :key="product.id" class="border rounded-lg p-4">
+            <div class="text-sm text-green-600 mb-2">Estoque: {{ product.stock }}</div>
+            <div class="h-32 bg-gray-100 rounded-lg mb-2 flex items-center justify-center">
+              <span class="text-gray-400">Sem imagem</span>
             </div>
-          </div>
-
-          <!-- Lista de Produtos no Carrinho -->
-          <div class="space-y-4">
-            <div v-if="cart.length === 0" class="text-center py-8 text-gray-500">
-              Nenhum produto adicionado
-            </div>
-            <div v-else v-for="(item, index) in cart" :key="index" class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div class="flex items-center space-x-4">
-                <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
-                  <img v-if="item.image" :src="item.image" class="w-full h-full object-cover rounded-lg" />
-                  <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <div class="font-medium text-gray-900">{{ item.name }}</div>
-                  <div class="text-sm text-gray-500">R$ {{ formatPrice(item.price) }}</div>
-                </div>
-              </div>
-              <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-2">
-                  <button @click="updateQuantity(index, -1)" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-                    </svg>
-                  </button>
-                  <span class="w-8 text-center">{{ item.quantity }}</span>
-                  <button @click="updateQuantity(index, 1)" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                  </button>
-                </div>
-                <button @click="removeFromCart(index)" class="text-red-500 hover:text-red-700 transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-            </div>
+            <h3 class="font-medium mb-2">{{ product.name }}</h3>
+            <div class="text-lg font-bold text-indigo-600 mb-2">R$ {{ formatPrice(product.price) }}</div>
+            <button 
+              @click="addToCart(product)"
+              class="w-full bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700"
+            >
+              Adicionar
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Coluna Direita - Resumo e Finalização -->
-      <div class="col-span-4">
-        <div class="bg-white rounded-lg shadow p-6">
-          <!-- Cliente -->
-          <div class="mb-6">
+      <!-- Coluna 3: Carrinho -->
+      <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="text-xl font-bold mb-4">Carrinho</h2>
+
+        <!-- Empty Cart -->
+        <div v-if="cart.length === 0" class="text-center py-8">
+          <p class="text-gray-500">Seu carrinho está vazio</p>
+        </div>
+
+        <!-- Cart Items -->
+        <div v-else class="space-y-4">
+          <!-- Cart Items List -->
+          <div v-for="(item, index) in cart" :key="item.id" class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+            <div class="flex-1">
+              <h3 class="font-medium">{{ item.name }}</h3>
+              <div class="text-indigo-600">R$ {{ formatPrice(item.price) }}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button @click="updateQuantity(index, -1)" class="p-1 rounded hover:bg-gray-200">-</button>
+              <span class="w-8 text-center">{{ item.quantity }}</span>
+              <button @click="updateQuantity(index, 1)" class="p-1 rounded hover:bg-gray-200">+</button>
+              <button @click="removeFromCart(index)" class="text-red-500 hover:text-red-700">×</button>
+            </div>
+          </div>
+
+          <!-- Busca de Cliente -->
+          <div class="mt-4">
             <label class="block text-sm font-medium text-gray-700 mb-2">Cliente</label>
-            <select
-              v-model="selectedCustomer"
-              class="w-full h-[45px] px-4 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            >
-              <option value="">Selecione um cliente</option>
-              <option v-for="customer in customers" :key="customer?.id" :value="customer">
-                {{ customer?.name }}
-              </option>
-            </select>
-          </div>
+            <input
+              type="text"
+              v-model="customerSearch"
+              @input="searchCustomers"
+              placeholder="Digite o nome do cliente"
+              class="w-full p-3 border rounded-lg mb-2"
+            />
+            <div class="text-sm text-gray-500 mb-2">Digite pelo menos 2 caracteres para buscar</div>
+            
+            <!-- Lista de Clientes -->
+            <div v-if="filteredCustomers.length > 0" class="mb-4 max-h-40 overflow-y-auto">
+              <div
+                v-for="customer in filteredCustomers"
+                :key="customer.id"
+                @click="selectCustomer(customer)"
+                class="p-2 hover:bg-gray-50 cursor-pointer rounded"
+              >
+                {{ customer.name }} - {{ customer.phone }}
+              </div>
+            </div>
 
-          <!-- Resumo -->
-          <div class="space-y-4">
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-600">Subtotal</span>
-              <span class="font-medium">R$ {{ formatPrice(cartSubtotal) }}</span>
-            </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-600">Desconto</span>
-              <div class="flex items-center space-x-2">
-                <input
-                  v-model="discount"
-                  type="number"
-                  min="0"
-                  class="w-20 h-8 px-2 text-right rounded border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                />
-                <span class="text-gray-500">%</span>
-              </div>
-            </div>
-            <div class="pt-4 border-t">
-              <div class="flex justify-between items-center">
-                <span class="text-lg font-medium text-gray-900">Total</span>
-                <span class="text-2xl font-bold text-indigo-600">R$ {{ formatPrice(cartTotal) }}</span>
-              </div>
+            <!-- Cliente Selecionado -->
+            <div v-if="selectedCustomer" class="p-2 bg-green-50 rounded mb-4">
+              <div class="font-medium">{{ selectedCustomer.name }}</div>
+              <div class="text-sm text-gray-600">{{ selectedCustomer.phone }}</div>
             </div>
           </div>
 
-          <!-- Método de Pagamento -->
-          <div class="mt-6">
+          <!-- Forma de Pagamento -->
+          <div class="mt-4">
             <label class="block text-sm font-medium text-gray-700 mb-2">Método de Pagamento</label>
-            <select
+            <select 
               v-model="paymentMethod"
-              class="w-full h-[45px] px-4 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              class="w-full p-2 border rounded"
             >
               <option value="">Selecione o método</option>
-              <option value="cash">Dinheiro</option>
-              <option value="credit">Cartão de Crédito</option>
-              <option value="debit">Cartão de Débito</option>
+              <option value="money">Dinheiro</option>
+              <option value="credit_card">Cartão de Crédito</option>
+              <option value="debit_card">Cartão de Débito</option>
               <option value="pix">PIX</option>
             </select>
           </div>
 
-          <!-- Botão Finalizar -->
+          <!-- Totais -->
+          <div class="border-t pt-4 mt-4">
+            <div class="flex justify-between mb-2">
+              <span>Subtotal</span>
+              <span>R$ {{ formatPrice(cartSubtotal) }}</span>
+            </div>
+            <div class="flex justify-between mb-2">
+              <span>Desconto (%)</span>
+              <input
+                type="number"
+                v-model="discount"
+                class="w-20 text-right border rounded"
+                min="0"
+                max="100"
+              />
+            </div>
+            <div class="flex justify-between font-bold text-lg">
+              <span>Total</span>
+              <span>R$ {{ formatPrice(cartTotal) }}</span>
+            </div>
+          </div>
+
+          <!-- Finalizar Venda -->
           <button
             @click="finalizeSale"
             :disabled="!canFinalize"
-            class="w-full h-[45px] mt-6 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full bg-emerald-500 text-white py-3 px-4 rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
           >
             Finalizar Venda
           </button>
@@ -155,33 +141,15 @@
       </div>
     </div>
 
-    <!-- Modal de Conclusão -->
-    <div v-if="showCompletionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-8 w-full max-w-md">
-        <div class="text-center">
-          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-            <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h3 class="text-lg font-medium text-gray-900 mb-2">Venda Finalizada</h3>
-          <p class="text-sm text-gray-500 mb-6">
-            Venda realizada com sucesso! O que deseja fazer agora?
-          </p>
-          <div class="flex justify-center space-x-4">
-            <button
-              @click="printReceipt"
-              class="h-[45px] px-6 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Imprimir Comprovante
-            </button>
-            <button
-              @click="closeCompletionModal"
-              class="h-[45px] px-6 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-            >
-              Nova Venda
-            </button>
-          </div>
+    <!-- Modal de Detalhes da Venda -->
+    <div v-if="showSaleDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg w-full max-w-2xl mx-4">
+        <div class="p-6">
+          <h2 class="text-xl font-bold mb-4">Detalhes da Venda</h2>
+          <!-- Detalhes da venda aqui -->
+          <button @click="showSaleDetailsModal = false" class="mt-4 px-4 py-2 bg-gray-200 rounded">
+            Fechar
+          </button>
         </div>
       </div>
     </div>
@@ -192,31 +160,35 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from '../plugins/axios'
 import { useToast } from 'vue-toastification'
+import html2pdf from 'html2pdf.js'
 
 const toast = useToast()
 
-// Estado
-const productSearch = ref('')
-const showProductResults = ref(false)
-const filteredProducts = ref([])
+// Refs
 const cart = ref([])
-const customers = ref([])
+const productSearch = ref('')
+const customerSearch = ref('')
+const filteredProducts = ref([])
+const filteredCustomers = ref([])
 const selectedCustomer = ref(null)
-const discount = ref(0)
 const paymentMethod = ref('')
-const showCompletionModal = ref(false)
 const loading = ref(false)
-const searchTimeout = ref(null)
+const error = ref(null)
+const discount = ref(0)
+const showSaleDetailsModal = ref(false)
+const saleDetails = ref(null)
 
 // Computed
 const cartSubtotal = computed(() => {
   return cart.value.reduce((total, item) => total + (item.price * item.quantity), 0)
 })
 
+const discountAmount = computed(() => {
+  return (cartSubtotal.value * discount.value) / 100
+})
+
 const cartTotal = computed(() => {
-  const subtotal = cartSubtotal.value
-  const discountAmount = subtotal * (discount.value / 100)
-  return subtotal - discountAmount
+  return cartSubtotal.value - discountAmount.value
 })
 
 const canFinalize = computed(() => {
@@ -224,61 +196,54 @@ const canFinalize = computed(() => {
 })
 
 // Funções
-const formatPrice = (value) => {
-  return Number(value).toFixed(2)
-}
-
 const searchProducts = async () => {
-  if (searchTimeout.value) {
-    clearTimeout(searchTimeout.value)
-  }
-
+  console.log('Buscando produtos...')
   if (productSearch.value.length < 2) {
-    showProductResults.value = false
     filteredProducts.value = []
     return
   }
 
-  searchTimeout.value = setTimeout(async () => {
-    try {
-      console.log('Buscando produtos com:', productSearch.value)
-      const response = await axios.get(`/products`, {
-        params: {
-          search: productSearch.value
-        }
-      })
-      console.log('Resposta da API:', response.data)
-      
-      if (response.data.success && Array.isArray(response.data.data)) {
-        filteredProducts.value = response.data.data
-        console.log('Produtos encontrados:', filteredProducts.value)
-      } else {
-        console.log('Nenhum produto encontrado')
-        filteredProducts.value = []
-      }
-      showProductResults.value = true
-    } catch (error) {
-      console.error('Erro ao buscar produtos:', error)
-      toast.error('Erro ao buscar produtos')
+  try {
+    loading.value = true
+    error.value = null
+    const response = await axios.get('/products/search', {
+      params: { search: productSearch.value }
+    })
+    console.log('Resposta da busca:', response.data)
+    
+    // Verifica se a resposta tem a propriedade data e se é um array
+    if (response.data && Array.isArray(response.data.data)) {
+      filteredProducts.value = response.data.data.map(product => ({
+        ...product,
+        price: Number(product.price) || 0,
+        stock: Number(product.stock) || 0
+      }))
+    } else {
+      console.error('Formato de resposta inválido na busca:', response.data)
       filteredProducts.value = []
     }
-  }, 300)
+  } catch (err) {
+    console.error('Erro detalhado ao buscar produtos:', err)
+    error.value = err.response?.data?.message || 'Erro ao buscar produtos'
+    toast.error(error.value)
+    filteredProducts.value = []
+  } finally {
+    loading.value = false
+  }
 }
 
 const addToCart = (product) => {
   const existingItem = cart.value.find(item => item.id === product.id)
-  
   if (existingItem) {
     existingItem.quantity++
   } else {
     cart.value.push({
-      ...product,
+      id: product.id,
+      name: product.name,
+      price: product.price,
       quantity: 1
     })
   }
-  
-  showProductResults.value = false
-  productSearch.value = ''
   toast.success('Produto adicionado ao carrinho')
 }
 
@@ -298,74 +263,217 @@ const removeFromCart = (index) => {
   toast.success('Produto removido do carrinho')
 }
 
-const finalizeSale = async () => {
-  if (!canFinalize.value) return
+async function searchCustomers() {
+  if (!customerSearch.value || customerSearch.value.length < 2) {
+    filteredCustomers.value = []
+    return
+  }
 
   try {
     loading.value = true
-    const sale = {
-      customer_id: selectedCustomer.value.id,
-      items: cart.value.map(item => ({
-        product_id: item.id,
-        quantity: item.quantity,
-        price: item.price
-      })),
-      discount: discount.value,
-      payment_method: paymentMethod.value,
-      total: cartTotal.value
+    const response = await axios.get('/customers/search', {
+      params: { search: customerSearch.value }
+    })
+    console.log('Resposta da busca de clientes:', response.data)
+    
+    // Verifica se a resposta é um array ou se tem a propriedade data
+    if (Array.isArray(response.data)) {
+      filteredCustomers.value = response.data
+    } else if (response.data && Array.isArray(response.data.data)) {
+      filteredCustomers.value = response.data.data
+    } else {
+      console.error('Formato de resposta inválido na busca de clientes:', response.data)
+      filteredCustomers.value = []
     }
-
-    await axios.post('/sales', sale)
-    showCompletionModal.value = true
-    toast.success('Venda finalizada com sucesso!')
-  } catch (error) {
-    console.error('Erro ao finalizar venda:', error)
-    toast.error('Erro ao finalizar venda')
+  } catch (err) {
+    console.error('Erro ao buscar clientes:', err)
+    toast.error('Erro ao buscar clientes')
+    filteredCustomers.value = []
   } finally {
     loading.value = false
   }
 }
 
-const printReceipt = () => {
-  // Implementar impressão do comprovante
-  toast.info('Impressão do comprovante em desenvolvimento')
+const selectCustomer = (customer) => {
+  selectedCustomer.value = customer
+  customerSearch.value = customer.name
+  filteredCustomers.value = []
 }
 
-const closeCompletionModal = () => {
-  showCompletionModal.value = false
-  cart.value = []
-  selectedCustomer.value = null
-  discount.value = 0
-  paymentMethod.value = ''
-}
+const finalizeSale = async () => {
+  if (!selectedCustomer.value?.id) {
+    toast.error('Por favor, selecione um cliente')
+    return
+  }
 
-const loadCustomers = async () => {
+  if (!paymentMethod.value) {
+    toast.error('Por favor, selecione um método de pagamento')
+    return
+  }
+
+  if (cart.value.length === 0) {
+    toast.error('O carrinho está vazio')
+    return
+  }
+
   try {
-    const response = await axios.get('/customers')
-    if (Array.isArray(response.data)) {
-      customers.value = response.data.filter(customer => customer && customer.id)
-    } else {
-      customers.value = []
+    loading.value = true
+    
+    // Formatar os itens do carrinho
+    const items = cart.value.map(item => ({
+      product_id: parseInt(item.id),
+      quantity: parseInt(item.quantity),
+      unit_price: parseFloat(item.price),
+      total: parseFloat((item.quantity * item.price).toFixed(2))
+    }))
+
+    // Calcular o total
+    const subtotal = items.reduce((sum, item) => sum + item.total, 0)
+    const discount_value = (parseFloat(discount.value) / 100) * subtotal
+    const total = subtotal - discount_value
+
+    // Mapear método de pagamento
+    const paymentMethodMap = {
+      'dinheiro': 'money',
+      'cartao_credito': 'credit_card',
+      'cartao_debito': 'debit_card',
+      'pix': 'pix'
     }
-  } catch (error) {
-    console.error('Erro ao carregar clientes:', error)
-    toast.error('Erro ao carregar clientes')
-    customers.value = []
+
+    const normalizedPaymentMethod = paymentMethod.value.toLowerCase()
+    const payment_method = paymentMethodMap[normalizedPaymentMethod] || normalizedPaymentMethod
+
+    // Validar método de pagamento
+    if (!['money', 'credit_card', 'debit_card', 'pix'].includes(payment_method)) {
+      toast.error('Método de pagamento inválido. Use: Dinheiro, Cartão de Crédito, Cartão de Débito ou PIX')
+      return
+    }
+
+    const saleData = {
+      customer_id: parseInt(selectedCustomer.value.id),
+      payment_method: payment_method,
+      items: items,
+      subtotal: parseFloat(subtotal.toFixed(2)),
+      discount_percentage: parseFloat(discount.value) || 0,
+      discount_value: parseFloat(discount_value.toFixed(2)),
+      total: parseFloat(total.toFixed(2)),
+      company_id: 1,
+      store_id: 1, // Usando ID fixo da loja
+      installments: payment_method === 'credit_card' ? 1 : null // Parcelas apenas para cartão de crédito
+    }
+
+    console.log('Dados da venda a serem enviados:', JSON.stringify(saleData, null, 2))
+
+    const response = await axios.post('/sales', saleData)
+    console.log('Resposta da venda:', response.data)
+    
+    if (response.data) {
+      saleDetails.value = response.data.data || response.data
+      showSaleDetailsModal.value = true
+      
+      // Limpa o carrinho após a venda
+      cart.value = []
+      selectedCustomer.value = null
+      customerSearch.value = ''
+      paymentMethod.value = ''
+      discount.value = 0
+      
+      toast.success('Venda realizada com sucesso!')
+    }
+  } catch (err) {
+    console.error('Erro ao finalizar venda:', err)
+    console.error('Detalhes do erro:', err.response?.data)
+    console.error('Campos com erro:', err.response?.data?.errors)
+    
+    if (err.response?.data?.errors) {
+      const errors = err.response.data.errors
+      Object.entries(errors).forEach(([field, messages]) => {
+        console.log(`Campo ${field}:`, messages)
+        if (Array.isArray(messages)) {
+          messages.forEach(message => {
+            toast.error(`${field}: ${message}`)
+          })
+        } else {
+          toast.error(`${field}: ${messages}`)
+        }
+      })
+    } else if (err.response?.data?.message) {
+      toast.error(err.response.data.message)
+    } else {
+      toast.error('Erro ao finalizar venda. Verifique os dados e tente novamente.')
+    }
+  } finally {
+    loading.value = false
   }
 }
 
-// Lifecycle hooks
+const formatPrice = (value) => {
+  if (value === undefined || value === null) return '0.00'
+  return Number(value).toFixed(2)
+}
+
+const formatDate = (date) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const formatPaymentMethod = (method) => {
+  const methods = {
+    dinheiro: 'Dinheiro',
+    cartao_credito: 'Cartão de Crédito',
+    cartao_debito: 'Cartão de Débito',
+    pix: 'PIX'
+  }
+  return methods[method] || method
+}
+
+const generatePDF = () => {
+  const element = document.querySelector('.modal-print-area')
+  const opt = {
+    margin: 1,
+    filename: `venda-${saleDetails.value?.code || 'comprovante'}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+  }
+
+  html2pdf().set(opt).from(element).save()
+}
+
+// Lifecycle
 onMounted(async () => {
+  console.log('PDV montado, carregando produtos iniciais...')
   try {
-    await loadCustomers()
-    // Carregar todos os produtos ao montar
+    loading.value = true
+    error.value = null
     const response = await axios.get('/products')
-    if (response.data.success && Array.isArray(response.data.data)) {
-      filteredProducts.value = response.data.data
-      showProductResults.value = true
+    console.log('Resposta completa:', response)
+    
+    // Verifica se a resposta tem a propriedade data e se é um array
+    if (response.data && Array.isArray(response.data.data)) {
+      filteredProducts.value = response.data.data.map(product => ({
+        ...product,
+        price: Number(product.price) || 0,
+        stock: Number(product.stock) || 0
+      }))
+    } else {
+      console.error('Formato de resposta inválido:', response.data)
+      filteredProducts.value = []
     }
-  } catch (error) {
-    console.error('Erro ao inicializar PDV:', error)
+    console.log('Produtos processados:', filteredProducts.value)
+  } catch (err) {
+    console.error('Erro detalhado ao carregar produtos:', err)
+    error.value = err.response?.data?.message || 'Erro ao carregar produtos iniciais'
+    toast.error(error.value)
+    filteredProducts.value = []
+  } finally {
+    loading.value = false
   }
 })
 </script>

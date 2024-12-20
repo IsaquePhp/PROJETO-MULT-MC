@@ -180,7 +180,7 @@ class CustomerController extends Controller
         $search = $request->search;
         
         if (empty($search) || strlen($search) < 2) {
-            return response()->json(['data' => []]);
+            return response()->json([]);
         }
 
         $customers = Customer::where('name', 'like', "%{$search}%")
@@ -190,6 +190,6 @@ class CustomerController extends Controller
             ->limit(10)
             ->get();
 
-        return response()->json(['data' => $customers]);
+        return response()->json($customers);
     }
 }
